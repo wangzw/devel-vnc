@@ -15,7 +15,7 @@ RUN dnf install -y epel-release \
         google-noto-sans-cjk-ttc-fonts \
         langpacks-zh_CN \
         dbus-x11 \
-        pulseaudio \
+        pipewire-pulseaudio \
         sudo \
         tini \
     && fc-cache -f \
