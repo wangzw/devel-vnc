@@ -46,8 +46,10 @@ COPY index.html /opt/noVNC/index.html
 RUN npm install -g @playwright/cli@latest
 
 USER devel
+WORKDIR /home/devel
 RUN playwright-cli install --skills
 USER root
+WORKDIR /
 
 RUN pip3 install --no-cache-dir supervisor && \
     mkdir -p /etc/supervisor/conf.d /var/log/supervisor && \
