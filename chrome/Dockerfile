@@ -34,7 +34,7 @@ RUN mv /usr/bin/chromium-browser /usr/bin/chromium-browser.real \
 
 # ---------- Node.js + tools ----------
 RUN dnf module enable -y nodejs:22 \
-    && dnf install -y nodejs \
+    && dnf install -y nodejs npm \
     && npm install -g @playwright/cli@latest \
     && dnf clean all && rm -rf /var/cache/dnf
 
