@@ -76,9 +76,13 @@ USER root
 # ---------- Skill dependencies (Go) ----------
 ENV GOPATH=/opt/go
 ENV PATH="${GOPATH}/bin:${PATH}"
-RUN go install github.com/steipete/blucli/cmd/blu@latest && \
+RUN C_INCLUDE_PATH=/usr/include CGO_CFLAGS="-I/usr/include" \
+    go install github.com/steipete/blucli/cmd/blu@latest && \
+    C_INCLUDE_PATH=/usr/include CGO_CFLAGS="-I/usr/include" \
     go install github.com/steipete/sonoscli/cmd/sonos@latest && \
+    C_INCLUDE_PATH=/usr/include CGO_CFLAGS="-I/usr/include" \
     go install github.com/steipete/eightctl/cmd/eightctl@latest && \
+    C_INCLUDE_PATH=/usr/include CGO_CFLAGS="-I/usr/include" \
     go install github.com/Hyaxia/blogwatcher/cmd/blogwatcher@latest && \
     rm -rf /opt/go/pkg /opt/go/src
 
