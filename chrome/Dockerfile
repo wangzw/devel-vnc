@@ -34,8 +34,8 @@ RUN mv /usr/bin/chromium-browser /usr/bin/chromium-browser.real \
     && chmod +x /usr/bin/chromium-browser
 
 # ---------- Config files ----------
-COPY --chmod=0755 entrypoint-chrome.sh /usr/local/bin/entrypoint-chrome.sh
-COPY --chmod=0755 healthcheck-chrome.sh /usr/local/bin/healthcheck-chrome.sh
+COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY --chmod=0755 healthcheck.sh /usr/local/bin/healthcheck.sh
 
 # ---------- Environment ----------
 ENV DISPLAY=:100 \
@@ -46,6 +46,6 @@ ENV DISPLAY=:100 \
 EXPOSE 10000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-    CMD /usr/local/bin/healthcheck-chrome.sh
+    CMD /usr/local/bin/healthcheck.sh
 
-ENTRYPOINT ["/usr/local/bin/entrypoint-chrome.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
