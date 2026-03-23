@@ -26,4 +26,4 @@ AUTOSTART
 chown -R devel:devel "${DEV_HOME}"
 
 echo "[devel-vnc] Starting services via supervisord..."
-exec /usr/local/bin/supervisord -c /etc/supervisor/supervisord.conf
+exec sudo /usr/local/bin/supervisord -c /etc/supervisor/supervisord.conf
