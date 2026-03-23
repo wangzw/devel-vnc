@@ -38,10 +38,11 @@ COPY --chmod=0755 healthcheck.sh /usr/local/bin/healthcheck.sh
 # ---------- Environment ----------
 ENV DISPLAY=:100 \
     XPRA_PORT=10000 \
+    XPRA_TCP_PORT=10001 \
     XPRA_PW=devel \
     CHROME_URL=about:blank
 
-EXPOSE 10000
+EXPOSE 10000 10001
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
     CMD /usr/local/bin/healthcheck.sh

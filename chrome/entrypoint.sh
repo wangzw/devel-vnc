@@ -12,7 +12,7 @@ chown -R devel:devel "${DEV_HOME}/.xpra"
 
 echo "[xpra-chrome] Starting Xpra with Chromium..."
 exec sudo -u devel xpra start "${DISPLAY}" \
-    --bind-tcp=0.0.0.0:"${XPRA_PORT}" \
+    --bind-tcp=0.0.0.0:"${XPRA_TCP_PORT}" \
     --bind-ws=0.0.0.0:"${XPRA_PORT}" \
     --html=on \
     --tcp-auth=file:filename="${DEV_HOME}/.xpra/password" \
