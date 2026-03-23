@@ -45,6 +45,7 @@
             transition: background 0.2s;
         }
         #top_bar button:hover { background: #53a8b6; color: #1a1a2e; }
+        #top_bar button.active { background: #53a8b6; color: #1a1a2e; }
         #status {
             font-size: 12px;
             color: #888;
@@ -56,6 +57,7 @@
             flex: 1;
             overflow: hidden;
             background: #000;
+            position: relative;
         }
         #loading {
             position: absolute;
@@ -76,6 +78,124 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         #loading.hidden { display: none; }
+
+        /* Clipboard panel */
+        #clipboardPanel {
+            display: none;
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 320px;
+            height: 100%;
+            background: #16213e;
+            border-left: 1px solid #0f3460;
+            z-index: 20;
+            flex-direction: column;
+            padding: 12px;
+        }
+        #clipboardPanel.open { display: flex; }
+        #clipboardPanel h3 {
+            font-size: 13px;
+            color: #53a8b6;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #clipboardPanel h3 button {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0 4px;
+        }
+        #clipboardPanel h3 button:hover { color: #e0e0e0; }
+        #clipboardText {
+            flex: 1;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            padding: 8px;
+            font-family: monospace;
+            font-size: 13px;
+            resize: none;
+            outline: none;
+        }
+        #clipboardText:focus { border-color: #53a8b6; }
+        #clipboardActions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        #clipboardActions button {
+            flex: 1;
+            background: #0f3460;
+            color: #e0e0e0;
+            border: 1px solid #53a8b6;
+            border-radius: 4px;
+            padding: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        #clipboardActions button:hover { background: #53a8b6; color: #1a1a2e; }
+        #clipboardHint {
+            font-size: 11px;
+            color: #666;
+            margin-top: 6px;
+        }
+
+        /* Settings panel */
+        #settingsPanel {
+            display: none;
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 280px;
+            background: #16213e;
+            border-left: 1px solid #0f3460;
+            border-bottom: 1px solid #0f3460;
+            z-index: 20;
+            padding: 12px;
+            border-radius: 0 0 0 8px;
+        }
+        #settingsPanel.open { display: block; }
+        #settingsPanel h3 {
+            font-size: 13px;
+            color: #53a8b6;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #settingsPanel h3 button {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0 4px;
+        }
+        #settingsPanel h3 button:hover { color: #e0e0e0; }
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+        .setting-row label { color: #ccc; }
+        .setting-row input[type="range"] {
+            width: 120px;
+            accent-color: #53a8b6;
+        }
+        .setting-row .value {
+            color: #53a8b6;
+            font-weight: 600;
+            width: 24px;
+            text-align: right;
+        }
     </style>
 </head>
 <body>
@@ -83,6 +203,8 @@
         <span class="title">Devel VNC</span>
         <span id="status" class="connecting">Connecting...</span>
         <div class="controls">
+            <button id="clipboardBtn" title="Toggle clipboard panel">Clipboard</button>
+            <button id="settingsBtn" title="Quality settings">Settings</button>
             <button id="fullscreenBtn" title="Toggle fullscreen">Fullscreen</button>
             <button id="ctrlAltDelBtn" title="Send Ctrl+Alt+Del">Ctrl+Alt+Del</button>
             <button id="reconnectBtn" title="Reconnect">Reconnect</button>
@@ -92,6 +214,29 @@
         <div id="loading">
             <div class="spinner"></div>
             <div>Connecting to VNC...</div>
+        </div>
+        <div id="clipboardPanel">
+            <h3>Clipboard <button id="clipboardClose">&times;</button></h3>
+            <textarea id="clipboardText" placeholder="Paste here to send to remote, or remote clipboard appears here..."></textarea>
+            <div id="clipboardActions">
+                <button id="clipSendBtn">Send to Remote</button>
+                <button id="clipCopyBtn">Copy to Local</button>
+                <button id="clipClearBtn">Clear</button>
+            </div>
+            <div id="clipboardHint">Remote clipboard changes sync here automatically.</div>
+        </div>
+        <div id="settingsPanel">
+            <h3>Quality <button id="settingsClose">&times;</button></h3>
+            <div class="setting-row">
+                <label>Compression</label>
+                <input type="range" id="compressionSlider" min="0" max="9" value="2">
+                <span class="value" id="compressionValue">2</span>
+            </div>
+            <div class="setting-row">
+                <label>Quality</label>
+                <input type="range" id="qualitySlider" min="0" max="9" value="6">
+                <span class="value" id="qualityValue">6</span>
+            </div>
         </div>
     </div>
 
@@ -106,6 +251,7 @@
         const statusEl = document.getElementById('status');
         const loadingEl = document.getElementById('loading');
         const screenEl = document.getElementById('screen');
+        const clipboardText = document.getElementById('clipboardText');
 
         let rfb = null;
 
@@ -131,6 +277,8 @@
 
             rfb.scaleViewport = true;
             rfb.resizeSession = true;
+            rfb.compressionLevel = parseInt(document.getElementById('compressionSlider').value);
+            rfb.qualityLevel = parseInt(document.getElementById('qualitySlider').value);
 
             rfb.addEventListener('connect', () => {
                 setStatus('Connected', 'connected');
@@ -150,9 +298,89 @@
             rfb.addEventListener('credentialsrequired', () => {
                 rfb.sendCredentials({ password: password });
             });
+
+            // Clipboard: remote -> local
+            rfb.addEventListener('clipboard', (e) => {
+                clipboardText.value = e.detail.text;
+            });
         }
 
-        // Controls
+        // Clipboard panel toggle
+        const clipboardPanel = document.getElementById('clipboardPanel');
+        const clipboardBtn = document.getElementById('clipboardBtn');
+        document.getElementById('clipboardBtn').addEventListener('click', () => {
+            const isOpen = clipboardPanel.classList.toggle('open');
+            clipboardBtn.classList.toggle('active', isOpen);
+            // Close settings if open
+            settingsPanel.classList.remove('open');
+            settingsBtn.classList.remove('active');
+        });
+        document.getElementById('clipboardClose').addEventListener('click', () => {
+            clipboardPanel.classList.remove('open');
+            clipboardBtn.classList.remove('active');
+        });
+
+        // Send clipboard to remote
+        document.getElementById('clipSendBtn').addEventListener('click', () => {
+            if (rfb) rfb.clipboardPasteFrom(clipboardText.value);
+        });
+
+        // Copy to local clipboard
+        document.getElementById('clipCopyBtn').addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(clipboardText.value);
+            } catch {
+                clipboardText.select();
+                document.execCommand('copy');
+            }
+        });
+
+        // Clear
+        document.getElementById('clipClearBtn').addEventListener('click', () => {
+            clipboardText.value = '';
+        });
+
+        // Also send on typing (debounced) so user can type directly into textarea
+        let clipTimer = null;
+        clipboardText.addEventListener('input', () => {
+            clearTimeout(clipTimer);
+            clipTimer = setTimeout(() => {
+                if (rfb) rfb.clipboardPasteFrom(clipboardText.value);
+            }, 500);
+        });
+
+        // Settings panel toggle
+        const settingsPanel = document.getElementById('settingsPanel');
+        const settingsBtn = document.getElementById('settingsBtn');
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            const isOpen = settingsPanel.classList.toggle('open');
+            settingsBtn.classList.toggle('active', isOpen);
+            // Close clipboard if open
+            clipboardPanel.classList.remove('open');
+            clipboardBtn.classList.remove('active');
+        });
+        document.getElementById('settingsClose').addEventListener('click', () => {
+            settingsPanel.classList.remove('open');
+            settingsBtn.classList.remove('active');
+        });
+
+        // Compression slider
+        const compressionSlider = document.getElementById('compressionSlider');
+        const compressionValue = document.getElementById('compressionValue');
+        compressionSlider.addEventListener('input', () => {
+            compressionValue.textContent = compressionSlider.value;
+            if (rfb) rfb.compressionLevel = parseInt(compressionSlider.value);
+        });
+
+        // Quality slider
+        const qualitySlider = document.getElementById('qualitySlider');
+        const qualityValue = document.getElementById('qualityValue');
+        qualitySlider.addEventListener('input', () => {
+            qualityValue.textContent = qualitySlider.value;
+            if (rfb) rfb.qualityLevel = parseInt(qualitySlider.value);
+        });
+
+        // Fullscreen
         document.getElementById('fullscreenBtn').addEventListener('click', () => {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
