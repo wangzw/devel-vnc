@@ -42,6 +42,13 @@ RUN git clone --depth 1 https://github.com/novnc/noVNC.git /opt/noVNC && \
     rm -rf /opt/noVNC/.git /opt/noVNC/utils/websockify/.git
 COPY index.html /opt/noVNC/index.html
 
+# ---------- Playwright CLI ----------
+RUN npm install -g @playwright/cli@latest
+
+USER devel
+RUN playwright-cli install --skills
+USER root
+
 RUN pip3 install --no-cache-dir supervisor && \
     mkdir -p /etc/supervisor/conf.d /var/log/supervisor && \
     chown devel:devel /var/log/supervisor
