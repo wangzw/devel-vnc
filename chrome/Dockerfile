@@ -5,8 +5,6 @@ LABEL description="Xpra-based Chromium browser environment on Rocky Linux 9"
 
 # ---------- Xpra repo + system packages (single layer) ----------
 RUN dnf install -y epel-release \
-    && dnf install -y \
-        https://xpra.org/repos/Rocky/9/x86_64/xpra-repo-1-1.el9.noarch.rpm \
     && dnf install -y --allowerasing \
         xpra \
         chromium \
