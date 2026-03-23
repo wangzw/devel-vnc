@@ -28,7 +28,9 @@ RUN dnf install -y epel-release \
     && rm -rf /var/cache/dnf
 
 # ---------- KasmVNC (Oracle 9 RPM, binary-compatible with Rocky 9) ----------
-RUN ARCH=$(uname -m) \
+RUN dnf install -y dnf-plugins-core \
+    && dnf config-manager --set-enabled crb \
+    && ARCH=$(uname -m) \
     && dnf install -y \
         "https://github.com/kasmtech/KasmVNC/releases/download/v1.4.0/kasmvncserver_oracle_9_1.4.0_${ARCH}.rpm" \
     && dnf clean all && rm -rf /var/cache/dnf
@@ -73,7 +75,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
 USER devel
 WORKDIR /home/devel
 
-RUN playwright-cli install --skills \
-    && curl -fsSL https://claude.ai/install.sh | sh
+RUN playwright-cli install --skills
+RUN curl -fsSL https://claude.ai/install.sh | sh
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint.sh"]

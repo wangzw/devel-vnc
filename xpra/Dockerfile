@@ -26,6 +26,13 @@ RUN dnf install -y epel-release \
     && dnf clean all \
     && rm -rf /var/cache/dnf
 
+# ---------- Xpra HTML5 client ----------
+RUN dnf install -y git python3 \
+    && git clone --depth 1 https://github.com/Xpra-org/xpra-html5.git /tmp/xpra-html5 \
+    && cd /tmp/xpra-html5 && python3 setup.py install /usr/share/xpra/www \
+    && rm -rf /tmp/xpra-html5 \
+    && dnf clean all && rm -rf /var/cache/dnf
+
 # ---------- User setup ----------
 RUN useradd -m -s /bin/bash devel \
     && echo 'devel ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/devel \
@@ -64,7 +71,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
 USER devel
 WORKDIR /home/devel
 
-RUN playwright-cli install --skills \
-    && curl -fsSL https://claude.ai/install.sh | sh
+RUN playwright-cli install --skills
+RUN curl -fsSL https://claude.ai/install.sh | sh
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint.sh"]

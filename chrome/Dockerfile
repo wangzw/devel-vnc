@@ -61,7 +61,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
 USER devel
 WORKDIR /home/devel
 
-RUN playwright-cli install --skills \
-    && curl -fsSL https://claude.ai/install.sh | sh
+RUN playwright-cli install --skills
+RUN curl -fsSL https://claude.ai/install.sh | sh
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint.sh"]
