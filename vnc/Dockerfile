@@ -20,6 +20,7 @@ RUN dnf install -y --allowerasing \
         chromium \
         google-noto-sans-cjk-ttc-fonts \
         langpacks-zh_CN \
+        tini \
     && dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo \
     && dnf install -y gh \
     && fc-cache -f \
@@ -74,4 +75,4 @@ WORKDIR /home/devel
 RUN playwright-cli install --skills \
     && curl -fsSL https://claude.ai/install.sh | sh
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint.sh"]

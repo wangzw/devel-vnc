@@ -16,6 +16,7 @@ RUN dnf install -y epel-release \
         langpacks-zh_CN \
         dbus-x11 \
         sudo \
+        tini \
     && fc-cache -f \
     && dnf clean all \
     && rm -rf /var/cache/dnf
@@ -47,4 +48,4 @@ EXPOSE 10000 10001
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
     CMD /usr/local/bin/healthcheck.sh
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint.sh"]
