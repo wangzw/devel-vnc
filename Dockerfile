@@ -22,6 +22,12 @@ RUN dnf install -y --allowerasing \
     && fc-cache -f \
     && dnf clean all
 
+# ---------- GitHub CLI ----------
+RUN dnf install -y 'dnf-command(config-manager)' && \
+    dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo && \
+    dnf install -y gh && \
+    dnf clean all
+
 RUN useradd -m -s /bin/bash devel
 
 # --no-sandbox is required for Chromium in containers
