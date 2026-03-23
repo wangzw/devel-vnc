@@ -8,10 +8,9 @@ echo "[xpra-chrome] Configuring Xpra authentication..."
 mkdir -p "${DEV_HOME}/.xpra"
 echo "${XPRA_PW}" > "${DEV_HOME}/.xpra/password"
 chmod 600 "${DEV_HOME}/.xpra/password"
-chown -R devel:devel "${DEV_HOME}/.xpra"
 
 echo "[xpra-chrome] Starting Xpra with Chromium..."
-exec sudo -u devel xpra start "${DISPLAY}" \
+exec xpra start "${DISPLAY}" \
     --bind-tcp=0.0.0.0:"${XPRA_TCP_PORT}" \
     --bind-ws=0.0.0.0:"${XPRA_PORT}" \
     --html=on \

@@ -28,9 +28,15 @@ RUN useradd -m -s /bin/bash devel \
 
 # ---------- Chromium --no-sandbox wrapper (required in containers) ----------
 RUN mv /usr/bin/chromium-browser /usr/bin/chromium-browser.real \
-    && printf '#!/bin/bash\nexec /usr/bin/chromium-browser.real --no-sandbox "$@"\n' \
+    && printf '#!/bin/bash\nexec /usr/bin/chromium-browser.real --no-sandbox --remote-debugging-port=9222 "$@"\n' \
         > /usr/bin/chromium-browser \
     && chmod +x /usr/bin/chromium-browser
+
+# ---------- Node.js + tools ----------
+RUN dnf module enable -y nodejs:22 \
+    && dnf install -y nodejs \
+    && npm install -g @playwright/cli@latest \
+    && dnf clean all && rm -rf /var/cache/dnf
 
 # ---------- Config files ----------
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
@@ -47,5 +53,12 @@ EXPOSE 10000 10001
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
     CMD /usr/local/bin/healthcheck.sh
+
+# ---------- User-space setup ----------
+USER devel
+WORKDIR /home/devel
+
+RUN playwright-cli install --skills \
+    && curl -fsSL https://claude.ai/install.sh | sh
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint.sh"]
