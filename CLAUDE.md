@@ -4,63 +4,89 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Two Docker images for remote graphical access, each in its own subdirectory:
+Docker images for remote graphical access, all based on a shared base image (`base/`). Five subdirectories:
 
-- **`vnc/`** — Full VNC desktop environment (Xvnc + openbox + noVNC + Chromium) on `ghcr.io/wangzw/devel:main` (Rocky Linux 9 with dev toolchains)
-- **`chrome/`** — Xpra-based single Chromium window on Rocky Linux 9 (no desktop, browser only)
+- **`base/`** — Shared base image (`ghcr.io/wangzw/devel-base`) on Rocky Linux 9 with Node.js 25, Go, Homebrew, Chromium, playwright-cli, Claude Code
+- **`vnc/`** — TigerVNC + noVNC + openbox desktop
+- **`chrome/`** — Xpra single Chromium window (no desktop)
+- **`xpra/`** — Xpra full desktop (openbox + tint2 + Thunar)
+- **`kasmvnc/`** — KasmVNC full desktop (openbox + tint2 + Thunar)
 
-Both run as non-root `devel` user.
+All run as non-root `devel` user. Default password: `devel123`.
 
 ## Build & Run
 
-### VNC Desktop
+Build base first, then child images:
 
 ```bash
+docker build -t devel-base base/
 docker build -t devel-vnc vnc/
-docker run -d -p 5901:5901 -p 6080:6080 devel-vnc
+docker build -t devel-chrome chrome/
+docker build -t devel-xpra xpra/
+docker build -t devel-kasmvnc kasmvnc/
 ```
 
-- **VNC client**: `localhost:5901` (password: `devel`)
+### VNC Desktop
+```bash
+docker run -d -p 5901:5901 -p 6080:6080 devel-vnc
+```
+- **VNC client**: `localhost:5901` (password: `devel123`)
 - **Web browser (noVNC)**: `http://localhost:6080`
 
 ### Chrome (Xpra)
-
 ```bash
-docker build -t devel-chrome chrome/
-docker run -d -p 10000:10000 -e CHROME_URL=https://example.com devel-chrome
+docker run -d -p 10000:10000 -p 10001:10001 -e CHROME_URL=https://example.com devel-chrome
 ```
+- **Web client**: `http://localhost:10000` (password: `devel123`)
+- **Native client**: `xpra attach tcp://localhost:10001`
 
-- **Web client**: `http://localhost:10000` (password: `devel`)
-- **Native client**: `xpra attach tcp://localhost:10000`
+### Xpra Desktop
+```bash
+docker run -d -p 10000:10000 -p 10001:10001 devel-xpra
+```
+- **Web client**: `http://localhost:10000` (password: `devel123`)
+- **Native client**: `xpra attach tcp://localhost:10001`
+
+### KasmVNC Desktop
+```bash
+docker run -d -p 6901:6901 devel-kasmvnc
+```
+- **Web client**: `http://localhost:6901` (user: `devel`, password: `devel123`)
 
 ## Architecture
 
+### base/
+Rocky Linux 9 + Node.js 25 + EPEL/CRB + Homebrew + Go tools + Python tools + Chromium + playwright-cli + Claude Code + CJK fonts + tini + devel user.
+
 ### vnc/
-
-The entrypoint (`entrypoint.sh`) configures VNC credentials and the openbox desktop, then launches **supervisord** which manages all services defined in `supervisord.conf`:
-
-| Service  | Purpose                         | Priority |
-|----------|---------------------------------|----------|
-| xvnc     | TigerVNC X server on `:1`      | 10       |
-| openbox  | Window manager + tint2 taskbar  | 20       |
-| novnc    | WebSocket proxy for browser VNC | 30       |
-| log-tail | Aggregates all logs to stdout   | 50       |
-
-`index.html` is a custom noVNC landing page with clipboard sync and quality controls.
+Entrypoint configures VNC credentials and openbox, then launches **supervisord** managing: Xvnc, openbox, noVNC proxy, log aggregator.
 
 ### chrome/
+Entrypoint configures Xpra password and starts Xpra with Chromium as managed application.
 
-The entrypoint (`entrypoint.sh`) configures Xpra password and starts Xpra with Chromium as the managed application. Xpra handles X server, window forwarding, clipboard sync, and HTML5 web client — no supervisord needed.
+### xpra/
+Entrypoint configures Xpra password, openbox autostart, and starts Xpra in `start-desktop` mode with openbox. Includes xpra-html5 web client.
+
+### kasmvnc/
+Entrypoint configures KasmVNC password, SSL cert, xstartup with openbox, and starts vncserver.
 
 ## Key Environment Variables
 
+### Common
+`DISPLAY`, `PLAYWRIGHT_MCP_CDP_ENDPOINT`, `PLAYWRIGHT_MCP_ISOLATED`
+
 ### vnc/
-`VNC_PW`, `VNC_RESOLUTION`, `VNC_COL_DEPTH`, `VNC_PORT`, `NO_VNC_PORT`, `DISPLAY`
+`VNC_PW`, `VNC_RESOLUTION`, `VNC_COL_DEPTH`, `VNC_PORT`, `NO_VNC_PORT`
 
 ### chrome/
-`XPRA_PW`, `CHROME_URL`, `XPRA_PORT`, `DISPLAY`
+`XPRA_PW`, `CHROME_URL`, `XPRA_PORT`, `XPRA_TCP_PORT`
 
-## Base Images
+### xpra/
+`XPRA_PW`, `XPRA_PORT`, `XPRA_TCP_PORT`
 
-- **vnc/**: `ghcr.io/wangzw/devel:main` — Python 3.12, Node.js, Go, GCC/Clang, git, socat, and standard dev tools
-- **chrome/**: `rockylinux:9` — minimal base
+### kasmvnc/
+`KASM_PW`, `KASM_PORT`, `VNC_RESOLUTION`, `VNC_COL_DEPTH`
+
+## CI/CD
+
+GitHub Actions workflow builds multi-arch (amd64 + arm64) images. Base changes trigger rebuild of all child images. Images pushed to `ghcr.io/wangzw/devel-*`.

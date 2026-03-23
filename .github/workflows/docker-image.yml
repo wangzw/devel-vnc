@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths:
+      - 'base/**'
       - 'vnc/**'
       - 'chrome/**'
       - 'xpra/**'
@@ -17,6 +18,7 @@ jobs:
   changes:
     runs-on: ubuntu-24.04
     outputs:
+      base: ${{ steps.detect.outputs.base }}
       images: ${{ steps.detect.outputs.images }}
     steps:
       - name: Checkout repository
@@ -28,35 +30,144 @@ jobs:
         id: detect
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "base=true" >> "$GITHUB_OUTPUT"
             echo 'images=[{"context":"vnc","name":"ghcr.io/wangzw/devel-vnc"},{"context":"chrome","name":"ghcr.io/wangzw/devel-chrome"},{"context":"xpra","name":"ghcr.io/wangzw/devel-xpra"},{"context":"kasmvnc","name":"ghcr.io/wangzw/devel-kasmvnc"}]' >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          images='[]'
           changed=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          base=false
+          images='[]'
 
-          if echo "$changed" | grep -q '^vnc/'; then
-            images=$(echo "$images" | jq -c '. + [{"context":"vnc","name":"ghcr.io/wangzw/devel-vnc"}]')
+          if echo "$changed" | grep -q '^base/'; then
+            base=true
+            # base changed → rebuild all child images
+            images='[{"context":"vnc","name":"ghcr.io/wangzw/devel-vnc"},{"context":"chrome","name":"ghcr.io/wangzw/devel-chrome"},{"context":"xpra","name":"ghcr.io/wangzw/devel-xpra"},{"context":"kasmvnc","name":"ghcr.io/wangzw/devel-kasmvnc"}]'
+          else
+            if echo "$changed" | grep -q '^vnc/'; then
+              images=$(echo "$images" | jq -c '. + [{"context":"vnc","name":"ghcr.io/wangzw/devel-vnc"}]')
+            fi
+            if echo "$changed" | grep -q '^chrome/'; then
+              images=$(echo "$images" | jq -c '. + [{"context":"chrome","name":"ghcr.io/wangzw/devel-chrome"}]')
+            fi
+            if echo "$changed" | grep -q '^xpra/'; then
+              images=$(echo "$images" | jq -c '. + [{"context":"xpra","name":"ghcr.io/wangzw/devel-xpra"}]')
+            fi
+            if echo "$changed" | grep -q '^kasmvnc/'; then
+              images=$(echo "$images" | jq -c '. + [{"context":"kasmvnc","name":"ghcr.io/wangzw/devel-kasmvnc"}]')
+            fi
           fi
 
-          if echo "$changed" | grep -q '^chrome/'; then
-            images=$(echo "$images" | jq -c '. + [{"context":"chrome","name":"ghcr.io/wangzw/devel-chrome"}]')
-          fi
-
-          if echo "$changed" | grep -q '^xpra/'; then
-            images=$(echo "$images" | jq -c '. + [{"context":"xpra","name":"ghcr.io/wangzw/devel-xpra"}]')
-          fi
-
-          if echo "$changed" | grep -q '^kasmvnc/'; then
-            images=$(echo "$images" | jq -c '. + [{"context":"kasmvnc","name":"ghcr.io/wangzw/devel-kasmvnc"}]')
-          fi
-
+          echo "base=$base" >> "$GITHUB_OUTPUT"
           echo "images=$images" >> "$GITHUB_OUTPUT"
+          echo "Base changed: $base"
           echo "Images to build: $images"
 
-  build:
+  # ---------- Build base image first ----------
+  build-base:
     needs: changes
-    if: ${{ needs.changes.outputs.images != '[]' }}
+    if: ${{ needs.changes.outputs.base == 'true' }}
+    runs-on: ${{ matrix.platform.runner }}
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        platform:
+          - runner: ubuntu-24.04
+            arch: linux/amd64
+            slug: amd64
+          - runner: ubuntu-24.04-arm
+            arch: linux/arm64
+            slug: arm64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: base
+          platforms: ${{ matrix.platform.arch }}
+          outputs: type=image,name=ghcr.io/wangzw/devel-base,push-by-digest=true,name-canonical=true,push=true
+
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests/base
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/base/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digest-base-${{ matrix.platform.slug }}
+          path: /tmp/digests/base/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge-base:
+    runs-on: ubuntu-24.04
+    needs: [changes, build-base]
+    if: ${{ needs.changes.outputs.base == 'true' }}
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          pattern: digest-base-*
+          merge-multiple: true
+          path: /tmp/digests
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/wangzw/devel-base
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value={{date 'YYYYMMDD'}}
+            type=sha,prefix=
+
+      - name: Create manifest list and push
+        working-directory: /tmp/digests
+        run: |
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf 'ghcr.io/wangzw/devel-base@sha256:%s ' *)
+
+      - name: Inspect image
+        run: docker buildx imagetools inspect $(jq -cr '.tags[0]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
+
+  # ---------- Build child images (after base if needed) ----------
+  build:
+    needs: [changes, merge-base]
+    if: ${{ always() && needs.changes.outputs.images != '[]' && (needs.merge-base.result == 'success' || needs.merge-base.result == 'skipped') }}
     runs-on: ${{ matrix.platform.runner }}
     permissions:
       contents: read
