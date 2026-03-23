@@ -7,6 +7,7 @@ on:
       - 'vnc/**'
       - 'chrome/**'
       - 'xpra/**'
+      - 'kasmvnc/**'
   workflow_dispatch:
 
 env:
@@ -27,7 +28,7 @@ jobs:
         id: detect
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo 'images=[{"context":"vnc","name":"ghcr.io/wangzw/devel-vnc"},{"context":"chrome","name":"ghcr.io/wangzw/devel-chrome"},{"context":"xpra","name":"ghcr.io/wangzw/devel-xpra"}]' >> "$GITHUB_OUTPUT"
+            echo 'images=[{"context":"vnc","name":"ghcr.io/wangzw/devel-vnc"},{"context":"chrome","name":"ghcr.io/wangzw/devel-chrome"},{"context":"xpra","name":"ghcr.io/wangzw/devel-xpra"},{"context":"kasmvnc","name":"ghcr.io/wangzw/devel-kasmvnc"}]' >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -44,6 +45,10 @@ jobs:
 
           if echo "$changed" | grep -q '^xpra/'; then
             images=$(echo "$images" | jq -c '. + [{"context":"xpra","name":"ghcr.io/wangzw/devel-xpra"}]')
+          fi
+
+          if echo "$changed" | grep -q '^kasmvnc/'; then
+            images=$(echo "$images" | jq -c '. + [{"context":"kasmvnc","name":"ghcr.io/wangzw/devel-kasmvnc"}]')
           fi
 
           echo "images=$images" >> "$GITHUB_OUTPUT"
