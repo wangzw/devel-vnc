@@ -58,7 +58,7 @@ COPY --chmod=0755 healthcheck.sh /usr/local/bin/healthcheck.sh
 ENV DISPLAY=:1 \
     VNC_PORT=5901 \
     NO_VNC_PORT=6080 \
-    VNC_RESOLUTION=1280x1024 \
+    VNC_RESOLUTION=1920x1080 \
     VNC_COL_DEPTH=24 \
     VNC_PW=devel
 
