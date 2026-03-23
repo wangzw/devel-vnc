@@ -47,7 +47,8 @@ ENV DISPLAY=:100 \
     XPRA_PORT=10000 \
     XPRA_TCP_PORT=10001 \
     XPRA_PW=devel \
-    CHROME_URL=about:blank
+    CHROME_URL=about:blank \
+    PLAYWRIGHT_MCP_CDP_ENDPOINT=http://localhost:9222
 
 EXPOSE 10000 10001
 
