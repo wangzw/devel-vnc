@@ -6,6 +6,7 @@ on:
     paths:
       - 'vnc/**'
       - 'chrome/**'
+      - 'xpra/**'
   workflow_dispatch:
 
 env:
@@ -26,7 +27,7 @@ jobs:
         id: detect
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo 'images=[{"context":"vnc","name":"ghcr.io/wangzw/devel-vnc"},{"context":"chrome","name":"ghcr.io/wangzw/devel-chrome"}]' >> "$GITHUB_OUTPUT"
+            echo 'images=[{"context":"vnc","name":"ghcr.io/wangzw/devel-vnc"},{"context":"chrome","name":"ghcr.io/wangzw/devel-chrome"},{"context":"xpra","name":"ghcr.io/wangzw/devel-xpra"}]' >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -39,6 +40,10 @@ jobs:
 
           if echo "$changed" | grep -q '^chrome/'; then
             images=$(echo "$images" | jq -c '. + [{"context":"chrome","name":"ghcr.io/wangzw/devel-chrome"}]')
+          fi
+
+          if echo "$changed" | grep -q '^xpra/'; then
+            images=$(echo "$images" | jq -c '. + [{"context":"xpra","name":"ghcr.io/wangzw/devel-xpra"}]')
           fi
 
           echo "images=$images" >> "$GITHUB_OUTPUT"

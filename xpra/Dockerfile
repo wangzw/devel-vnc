@@ -1,13 +1,17 @@
 FROM rockylinux:9
 
 LABEL maintainer="wangzw"
-LABEL description="Xpra-based Chromium browser environment on Rocky Linux 9"
+LABEL description="Xpra-based full desktop environment on Rocky Linux 9 - openbox + Chromium + audio"
 
 # ---------- Xpra repo + system packages (single layer) ----------
 RUN dnf install -y epel-release \
     && dnf install -y --allowerasing \
         xpra \
         chromium \
+        openbox \
+        tint2 \
+        Thunar \
+        xterm \
         xorg-x11-fonts-Type1 \
         xorg-x11-fonts-misc \
         xorg-x11-fonts-75dpi \
@@ -48,13 +52,12 @@ ENV DISPLAY=:100 \
     XPRA_PORT=10000 \
     XPRA_TCP_PORT=10001 \
     XPRA_PW=devel \
-    CHROME_URL=about:blank \
     PLAYWRIGHT_MCP_CDP_ENDPOINT=http://localhost:9222 \
     PLAYWRIGHT_MCP_ISOLATED=false
 
 EXPOSE 10000 10001
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD /usr/local/bin/healthcheck.sh
 
 # ---------- User-space setup ----------

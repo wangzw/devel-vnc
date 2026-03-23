@@ -3,20 +3,27 @@ set -euo pipefail
 
 DEV_HOME="/home/devel"
 
-echo "[xpra-chrome] Configuring Xpra authentication..."
+echo "[xpra-desktop] Configuring Xpra authentication..."
 
 mkdir -p "${DEV_HOME}/.xpra"
 echo "${XPRA_PW}" > "${DEV_HOME}/.xpra/password"
 chmod 600 "${DEV_HOME}/.xpra/password"
 
-echo "[xpra-chrome] Starting Xpra with Chromium..."
-exec xpra start "${DISPLAY}" \
+# ---------- openbox autostart ----------
+mkdir -p "${DEV_HOME}/.config/openbox"
+cat > "${DEV_HOME}/.config/openbox/autostart" << 'AUTOSTART'
+tint2 &
+thunar --daemon &
+AUTOSTART
+
+echo "[xpra-desktop] Starting Xpra desktop with openbox..."
+exec xpra start-desktop "${DISPLAY}" \
     --bind-tcp=0.0.0.0:"${XPRA_TCP_PORT}" \
     --bind-ws=0.0.0.0:"${XPRA_PORT}" \
     --html=on \
     --tcp-auth=file:filename="${DEV_HOME}/.xpra/password" \
     --ws-auth=file:filename="${DEV_HOME}/.xpra/password" \
-    --start="chromium-browser --start-maximized ${CHROME_URL}" \
+    --start-child="chromium-browser" \
     --no-daemon \
     --no-notifications \
     --no-mdns \
