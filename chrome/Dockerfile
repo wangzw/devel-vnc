@@ -1,0 +1,51 @@
+FROM rockylinux:9
+
+LABEL maintainer="wangzw"
+LABEL description="Xpra-based Chromium browser environment on Rocky Linux 9"
+
+# ---------- Xpra repo + system packages (single layer) ----------
+RUN dnf install -y epel-release \
+    && dnf install -y \
+        https://xpra.org/repos/Rocky/9/x86_64/xpra-repo-1-1.el9.noarch.rpm \
+    && dnf install -y --allowerasing \
+        xpra \
+        chromium \
+        xorg-x11-fonts-Type1 \
+        xorg-x11-fonts-misc \
+        xorg-x11-fonts-75dpi \
+        xorg-x11-fonts-100dpi \
+        google-noto-sans-cjk-ttc-fonts \
+        langpacks-zh_CN \
+        dbus-x11 \
+        sudo \
+    && fc-cache -f \
+    && dnf clean all \
+    && rm -rf /var/cache/dnf
+
+# ---------- User setup ----------
+RUN useradd -m -s /bin/bash devel \
+    && echo 'devel ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/devel \
+    && chmod 0440 /etc/sudoers.d/devel
+
+# ---------- Chromium --no-sandbox wrapper (required in containers) ----------
+RUN mv /usr/bin/chromium-browser /usr/bin/chromium-browser.real \
+    && printf '#!/bin/bash\nexec /usr/bin/chromium-browser.real --no-sandbox "$@"\n' \
+        > /usr/bin/chromium-browser \
+    && chmod +x /usr/bin/chromium-browser
+
+# ---------- Config files ----------
+COPY --chmod=0755 entrypoint-chrome.sh /usr/local/bin/entrypoint-chrome.sh
+COPY --chmod=0755 healthcheck-chrome.sh /usr/local/bin/healthcheck-chrome.sh
+
+# ---------- Environment ----------
+ENV DISPLAY=:100 \
+    XPRA_PORT=10000 \
+    XPRA_PW=devel \
+    CHROME_URL=about:blank
+
+EXPOSE 10000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD /usr/local/bin/healthcheck-chrome.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint-chrome.sh"]

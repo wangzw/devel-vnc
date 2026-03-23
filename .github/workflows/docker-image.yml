@@ -1,16 +1,52 @@
-name: Build and Push Docker Image
+name: Build and Push Docker Images
 
 on:
   push:
     branches: [main]
+    paths:
+      - 'vnc/**'
+      - 'chrome/**'
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ghcr.io/wangzw/devel-vnc
 
 jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    outputs:
+      images: ${{ steps.detect.outputs.images }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect changed images
+        id: detect
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo 'images=[{"context":"vnc","name":"ghcr.io/wangzw/devel-vnc"},{"context":"chrome","name":"ghcr.io/wangzw/devel-chrome"}]' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          images='[]'
+          changed=$(git diff --name-only HEAD~1 HEAD)
+
+          if echo "$changed" | grep -q '^vnc/'; then
+            images=$(echo "$images" | jq -c '. + [{"context":"vnc","name":"ghcr.io/wangzw/devel-vnc"}]')
+          fi
+
+          if echo "$changed" | grep -q '^chrome/'; then
+            images=$(echo "$images" | jq -c '. + [{"context":"chrome","name":"ghcr.io/wangzw/devel-chrome"}]')
+          fi
+
+          echo "images=$images" >> "$GITHUB_OUTPUT"
+          echo "Images to build: $images"
+
   build:
+    needs: changes
+    if: ${{ needs.changes.outputs.images != '[]' }}
     runs-on: ${{ matrix.platform.runner }}
     permissions:
       contents: read
@@ -18,6 +54,7 @@ jobs:
 
     strategy:
       matrix:
+        image: ${{ fromJson(needs.changes.outputs.images) }}
         platform:
           - runner: ubuntu-24.04
             arch: linux/amd64
@@ -44,36 +81,40 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ${{ matrix.image.context }}
           platforms: ${{ matrix.platform.arch }}
-          outputs: type=image,name=${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=${{ matrix.image.name }},push-by-digest=true,name-canonical=true,push=true
 
       - name: Export digest
         run: |
-          mkdir -p /tmp/digests
+          mkdir -p /tmp/digests/${{ matrix.image.context }}
           digest="${{ steps.build.outputs.digest }}"
-          touch "/tmp/digests/${digest#sha256:}"
+          touch "/tmp/digests/${{ matrix.image.context }}/${digest#sha256:}"
 
       - name: Upload digest
         uses: actions/upload-artifact@v4
         with:
-          name: digest-${{ matrix.platform.slug }}
-          path: /tmp/digests/*
+          name: digest-${{ matrix.image.context }}-${{ matrix.platform.slug }}
+          path: /tmp/digests/${{ matrix.image.context }}/*
           if-no-files-found: error
           retention-days: 1
 
   merge:
     runs-on: ubuntu-24.04
-    needs: build
+    needs: [changes, build]
     permissions:
       contents: read
       packages: write
+
+    strategy:
+      matrix:
+        image: ${{ fromJson(needs.changes.outputs.images) }}
 
     steps:
       - name: Download digests
         uses: actions/download-artifact@v4
         with:
-          pattern: digest-*
+          pattern: digest-${{ matrix.image.context }}-*
           merge-multiple: true
           path: /tmp/digests
 
@@ -91,7 +132,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.IMAGE_NAME }}
+          images: ${{ matrix.image.name }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=raw,value={{date 'YYYYMMDD'}}
@@ -102,7 +143,7 @@ jobs:
         run: |
           docker buildx imagetools create \
             $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.IMAGE_NAME }}@sha256:%s ' *)
+            $(printf '${{ matrix.image.name }}@sha256:%s ' *)
 
       - name: Inspect image
         run: docker buildx imagetools inspect $(jq -cr '.tags[0]' <<< "$DOCKER_METADATA_OUTPUT_JSON")
