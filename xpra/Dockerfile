@@ -2,14 +2,20 @@ FROM ghcr.io/wangzw/devel-base:latest
 
 LABEL description="Xpra-based full desktop environment - openbox + Chromium + audio"
 
-# ---------- Xpra + desktop packages ----------
+# ==========================================================================
+#  1. Packages
+# ==========================================================================
+
 RUN <<EOF
 set -e
 dnf install -y xpra openbox tint2 Thunar xterm
 dnf clean all && rm -rf /var/cache/dnf
 EOF
 
-# ---------- Xpra HTML5 client ----------
+# ==========================================================================
+#  2. Xpra HTML5 client
+# ==========================================================================
+
 RUN <<EOF
 set -e
 git clone --depth 1 https://github.com/Xpra-org/xpra-html5.git /tmp/xpra-html5
@@ -17,11 +23,17 @@ cd /tmp/xpra-html5 && python3 setup.py install /usr/share/xpra/www
 rm -rf /tmp/xpra-html5
 EOF
 
-# ---------- Config files ----------
+# ==========================================================================
+#  3. Config files
+# ==========================================================================
+
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY --chmod=0755 healthcheck.sh /usr/local/bin/healthcheck.sh
 
-# ---------- Environment ----------
+# ==========================================================================
+#  4. Environment + runtime
+# ==========================================================================
+
 ENV DISPLAY=:100 \
     XPRA_PORT=10000 \
     XPRA_TCP_PORT=10001 \

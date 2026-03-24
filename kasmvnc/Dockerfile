@@ -2,14 +2,20 @@ FROM ghcr.io/wangzw/devel-base:latest
 
 LABEL description="KasmVNC-based full desktop environment - openbox + Chromium + audio"
 
-# ---------- Desktop packages ----------
+# ==========================================================================
+#  1. Desktop packages
+# ==========================================================================
+
 RUN <<EOF
 set -e
 dnf install -y openbox tint2 Thunar xterm openssl mesa-dri-drivers
 dnf clean all && rm -rf /var/cache/dnf
 EOF
 
-# ---------- KasmVNC (Oracle 9 RPM, binary-compatible with Rocky 9) ----------
+# ==========================================================================
+#  2. KasmVNC (Oracle 9 RPM, binary-compatible with Rocky 9)
+# ==========================================================================
+
 RUN <<EOF
 set -e
 ARCH=$(uname -m)
@@ -18,14 +24,19 @@ dnf install -y \
 dnf clean all && rm -rf /var/cache/dnf
 EOF
 
-# ---------- KasmVNC cert group ----------
 RUN usermod -a -G kasmvnc-cert devel
 
-# ---------- Config files ----------
+# ==========================================================================
+#  3. Config files
+# ==========================================================================
+
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY --chmod=0755 healthcheck.sh /usr/local/bin/healthcheck.sh
 
-# ---------- Environment ----------
+# ==========================================================================
+#  4. Environment + runtime
+# ==========================================================================
+
 ENV DISPLAY=:1 \
     KASM_PORT=6901 \
     KASM_PW=devel123 \

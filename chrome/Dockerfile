@@ -2,18 +2,27 @@ FROM ghcr.io/wangzw/devel-base:latest
 
 LABEL description="Xpra-based Chromium browser environment"
 
-# ---------- Xpra ----------
+# ==========================================================================
+#  1. Packages
+# ==========================================================================
+
 RUN <<EOF
 set -e
 dnf install -y xpra
 dnf clean all && rm -rf /var/cache/dnf
 EOF
 
-# ---------- Config files ----------
+# ==========================================================================
+#  2. Config files
+# ==========================================================================
+
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY --chmod=0755 healthcheck.sh /usr/local/bin/healthcheck.sh
 
-# ---------- Environment ----------
+# ==========================================================================
+#  3. Environment + runtime
+# ==========================================================================
+
 ENV DISPLAY=:100 \
     XPRA_PORT=10000 \
     XPRA_TCP_PORT=10001 \

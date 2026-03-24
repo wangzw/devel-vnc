@@ -2,7 +2,10 @@ FROM ghcr.io/wangzw/devel-base:latest
 
 LABEL description="VNC desktop environment - Xvnc + openbox + Chromium + noVNC"
 
-# ---------- VNC + desktop packages ----------
+# ==========================================================================
+#  1. Packages
+# ==========================================================================
+
 RUN <<EOF
 set -e
 dnf install -y --allowerasing \
@@ -15,7 +18,10 @@ dnf install -y --allowerasing \
 dnf clean all && rm -rf /var/cache/dnf
 EOF
 
-# ---------- noVNC (web-based VNC access) ----------
+# ==========================================================================
+#  2. noVNC + supervisord
+# ==========================================================================
+
 RUN <<EOF
 set -e
 git clone --depth 1 https://github.com/novnc/noVNC.git /opt/noVNC
@@ -23,7 +29,6 @@ git clone --depth 1 https://github.com/novnc/websockify.git /opt/noVNC/utils/web
 rm -rf /opt/noVNC/.git /opt/noVNC/utils/websockify/.git
 EOF
 
-# ---------- Supervisord ----------
 RUN <<EOF
 set -e
 pip3 install --no-cache-dir supervisor
@@ -31,13 +36,19 @@ mkdir -p /etc/supervisor/conf.d /var/log/supervisor
 chown devel:devel /var/log/supervisor
 EOF
 
-# ---------- Config files ----------
+# ==========================================================================
+#  3. Config files
+# ==========================================================================
+
 COPY index.html /opt/noVNC/index.html
 COPY supervisord.conf /etc/supervisor/supervisord.conf
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY --chmod=0755 healthcheck.sh /usr/local/bin/healthcheck.sh
 
-# ---------- Environment ----------
+# ==========================================================================
+#  4. Environment + runtime
+# ==========================================================================
+
 ENV DISPLAY=:1 \
     VNC_PORT=5901 \
     NO_VNC_PORT=6080 \
