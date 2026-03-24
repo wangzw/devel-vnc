@@ -183,7 +183,7 @@ dnf install -y --allowerasing \
     google-noto-sans-cjk-ttc-fonts \
     langpacks-zh_CN \
     dbus-x11 \
-    pipewire-pulseaudio \
+    pulseaudio \
     tini \
     chromium
 fc-cache -f
