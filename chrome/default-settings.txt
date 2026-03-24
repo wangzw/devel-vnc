@@ -8,3 +8,7 @@ min-speed = 50
 # Hide the floating toolbar
 toolbar = no
 floating_menu = false
+
+# Enable audio
+sound = yes
+speaker = yes

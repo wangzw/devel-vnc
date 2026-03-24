@@ -3,12 +3,14 @@ FROM ghcr.io/wangzw/devel-base:latest
 LABEL description="Xpra-based Chromium browser environment"
 
 # ==========================================================================
-#  1. Packages
+#  1. Xpra + audio packages
 # ==========================================================================
 
 RUN <<EOF
 set -e
-dnf install -y --allowerasing xpra
+dnf install -y --allowerasing \
+    xpra \
+    pipewire-pulseaudio pipewire-utils wireplumber
 dnf clean all && rm -rf /var/cache/dnf
 EOF
 

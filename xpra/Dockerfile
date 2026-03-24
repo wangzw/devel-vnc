@@ -3,12 +3,15 @@ FROM ghcr.io/wangzw/devel-base:latest
 LABEL description="Xpra-based full desktop environment - openbox + Chromium + audio"
 
 # ==========================================================================
-#  1. Packages
+#  1. Desktop + Xpra packages
 # ==========================================================================
 
 RUN <<EOF
 set -e
-dnf install -y --allowerasing xpra openbox tint2 Thunar xterm
+dnf install -y --allowerasing \
+    xpra \
+    openbox tint2 Thunar xterm \
+    pipewire-pulseaudio pipewire-utils wireplumber
 dnf clean all && rm -rf /var/cache/dnf
 EOF
 
@@ -27,12 +30,12 @@ EOF
 #  3. Config files
 # ==========================================================================
 
+RUN sed -i 's|https://fedoraproject.org/start|about:blank|g' /etc/chromium/master_preferences
+
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY --chmod=0755 healthcheck.sh /usr/local/bin/healthcheck.sh
 COPY --chmod=0644 default-settings.txt /etc/xpra/html5-client/default-settings.txt
 COPY --chmod=0644 xorg.conf /etc/xpra/xorg.conf
-
-RUN sed -i 's|https://fedoraproject.org/start|about:blank|g' /etc/chromium/master_preferences
 
 # ==========================================================================
 #  4. Environment + runtime
