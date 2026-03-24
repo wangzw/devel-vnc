@@ -50,17 +50,6 @@ exec openbox-session
 XSTARTUP
 chmod +x "${DEV_HOME}/.vnc/xstartup"
 
-# ---------- PipeWire audio ----------
-export XDG_RUNTIME_DIR="/tmp/runtime-devel"
-mkdir -p "${XDG_RUNTIME_DIR}"
-eval "$(dbus-launch --sh-syntax)"
-pipewire &
-sleep 0.5
-pipewire-pulse &
-wireplumber &
-sleep 1
-export PULSE_SERVER="unix:${XDG_RUNTIME_DIR}/pulse/native"
-
 echo "[kasmvnc] Starting KasmVNC server..."
 exec vncserver "${DISPLAY}" \
     -depth "${VNC_COL_DEPTH}" \
