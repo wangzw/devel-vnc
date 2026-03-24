@@ -40,6 +40,8 @@ EOF
 #  3. Config files
 # ==========================================================================
 
+RUN sed -i 's|https://fedoraproject.org/start|about:blank|g' /etc/chromium/master_preferences
+
 COPY index.html /opt/noVNC/index.html
 COPY supervisord.conf /etc/supervisor/supervisord.conf
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh

@@ -23,11 +23,12 @@ exec xpra start-desktop "${DISPLAY}" \
     --html=on \
     --tcp-auth=file:filename="${DEV_HOME}/.xpra/password" \
     --ws-auth=file:filename="${DEV_HOME}/.xpra/password" \
-    --start-child="chromium-browser" \
+    --start=openbox-session \
     --no-daemon \
     --no-notifications \
     --no-mdns \
     --clipboard=yes \
     --speaker=yes \
     --microphone=no \
-    --dpi=96
+    --dpi=96 \
+    --resize-display=yes

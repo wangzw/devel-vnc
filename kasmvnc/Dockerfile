@@ -30,6 +30,8 @@ RUN usermod -a -G kasmvnc-cert devel
 #  3. Config files
 # ==========================================================================
 
+RUN sed -i 's|https://fedoraproject.org/start|about:blank|g' /etc/chromium/master_preferences
+
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY --chmod=0755 healthcheck.sh /usr/local/bin/healthcheck.sh
 

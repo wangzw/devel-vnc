@@ -23,6 +23,23 @@
             border-bottom: 1px solid #0f3460;
             z-index: 10;
             flex-shrink: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            transform: translateY(-100%);
+            transition: transform 0.3s ease;
+        }
+        #top_bar:hover, #top_bar.visible {
+            transform: translateY(0);
+        }
+        #top_bar_trigger {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 10px;
+            z-index: 9;
         }
         #top_bar .title {
             font-weight: 600;
@@ -78,6 +95,60 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         #loading.hidden { display: none; }
+
+        /* Login overlay */
+        #loginOverlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #1a1a2e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 30;
+        }
+        #loginOverlay.hidden { display: none; }
+        #loginBox {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            padding: 32px;
+            text-align: center;
+            min-width: 300px;
+        }
+        #loginBox h2 {
+            color: #53a8b6;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        #loginBox input[type="password"] {
+            width: 100%;
+            padding: 10px 12px;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 16px;
+        }
+        #loginBox input[type="password"]:focus { border-color: #53a8b6; }
+        #loginBox button {
+            background: #0f3460;
+            color: #e0e0e0;
+            border: 1px solid #53a8b6;
+            border-radius: 4px;
+            padding: 8px 24px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        #loginBox button:hover { background: #53a8b6; color: #1a1a2e; }
+        #loginError {
+            color: #f44336;
+            font-size: 12px;
+            margin-top: 10px;
+            display: none;
+        }
 
         /* Clipboard panel */
         #clipboardPanel {
@@ -199,6 +270,7 @@
     </style>
 </head>
 <body>
+    <div id="top_bar_trigger"></div>
     <div id="top_bar">
         <span class="title">Devel VNC</span>
         <span id="status" class="connecting">Connecting...</span>
@@ -211,7 +283,16 @@
         </div>
     </div>
     <div id="screen">
-        <div id="loading">
+        <div id="loginOverlay">
+            <div id="loginBox">
+                <h2>Devel VNC</h2>
+                <input type="password" id="loginPassword" placeholder="Password" autofocus>
+                <br>
+                <button id="loginBtn">Connect</button>
+                <div id="loginError">Authentication failed. Please try again.</div>
+            </div>
+        </div>
+        <div id="loading" class="hidden">
             <div class="spinner"></div>
             <div>Connecting to VNC...</div>
         </div>
@@ -245,34 +326,70 @@
 
         const host = window.location.hostname;
         const port = window.location.port || '6080';
-        const password = (new URLSearchParams(window.location.search)).get('password') || 'devel123';
+        const urlPassword = (new URLSearchParams(window.location.search)).get('password');
         const path = 'websockify';
 
         const statusEl = document.getElementById('status');
         const loadingEl = document.getElementById('loading');
         const screenEl = document.getElementById('screen');
         const clipboardText = document.getElementById('clipboardText');
+        const loginOverlay = document.getElementById('loginOverlay');
+        const loginPassword = document.getElementById('loginPassword');
+        const loginError = document.getElementById('loginError');
 
         let rfb = null;
+        let currentPassword = '';
+
+        // Auto-hide top bar
+        const topBar = document.getElementById('top_bar');
+        const topBarTrigger = document.getElementById('top_bar_trigger');
+        let hideTimer = null;
+
+        function showBar() {
+            clearTimeout(hideTimer);
+            topBar.classList.add('visible');
+        }
+        function scheduleHide() {
+            clearTimeout(hideTimer);
+            hideTimer = setTimeout(() => {
+                topBar.classList.remove('visible');
+            }, 1000);
+        }
+
+        topBarTrigger.addEventListener('mouseenter', showBar);
+        topBar.addEventListener('mouseenter', showBar);
+        topBar.addEventListener('mouseleave', scheduleHide);
 
         function setStatus(text, cls) {
             statusEl.textContent = text;
             statusEl.className = cls;
         }
 
-        function connect() {
+        function showLogin(showError) {
+            loginOverlay.classList.remove('hidden');
+            loadingEl.classList.add('hidden');
+            loginError.style.display = showError ? 'block' : 'none';
+            loginPassword.value = '';
+            loginPassword.focus();
+            setStatus('Disconnected', 'disconnected');
+            document.getElementById('top_bar').classList.add('visible');
+        }
+
+        function connect(password) {
+            currentPassword = password;
             if (rfb) {
                 rfb.disconnect();
                 rfb = null;
             }
 
+            loginOverlay.classList.add('hidden');
             setStatus('Connecting...', 'connecting');
             loadingEl.classList.remove('hidden');
 
             const url = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${host}:${port}/${path}`;
 
             rfb = new RFB(screenEl, url, {
-                credentials: { password: password },
+                credentials: { password: currentPassword },
             });
 
             rfb.scaleViewport = true;
@@ -283,20 +400,22 @@
             rfb.addEventListener('connect', () => {
                 setStatus('Connected', 'connected');
                 loadingEl.classList.add('hidden');
+                scheduleHide();
             });
 
             rfb.addEventListener('disconnect', (e) => {
                 const clean = e.detail.clean;
-                setStatus(clean ? 'Disconnected' : 'Connection lost', 'disconnected');
                 loadingEl.classList.add('hidden');
                 rfb = null;
-                if (!clean) {
-                    setTimeout(connect, 3000);
+                if (clean) {
+                    setStatus('Disconnected', 'disconnected');
+                } else {
+                    showLogin(true);
                 }
             });
 
             rfb.addEventListener('credentialsrequired', () => {
-                rfb.sendCredentials({ password: password });
+                rfb.sendCredentials({ password: currentPassword });
             });
 
             // Clipboard: remote -> local
@@ -394,11 +513,31 @@
         });
 
         document.getElementById('reconnectBtn').addEventListener('click', () => {
-            connect();
+            if (currentPassword) {
+                connect(currentPassword);
+            } else {
+                showLogin(false);
+            }
         });
 
-        // Start connection
-        connect();
+        // Login form handlers
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            const pw = loginPassword.value;
+            if (pw) connect(pw);
+        });
+        loginPassword.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const pw = loginPassword.value;
+                if (pw) connect(pw);
+            }
+        });
+
+        // Auto-connect if password provided via URL param, otherwise show login
+        if (urlPassword) {
+            connect(urlPassword);
+        } else {
+            showLogin(false);
+        }
     </script>
 </body>
 </html>

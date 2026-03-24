@@ -1,2 +1,2 @@
 #!/bin/bash
-pgrep -f "Xkasmvnc" > /dev/null 2>&1
+pgrep -f "Xvnc" > /dev/null 2>&1

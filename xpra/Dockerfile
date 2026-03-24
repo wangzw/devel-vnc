@@ -19,7 +19,7 @@ EOF
 RUN <<EOF
 set -e
 git clone --depth 1 https://github.com/Xpra-org/xpra-html5.git /tmp/xpra-html5
-cd /tmp/xpra-html5 && python3 setup.py install /
+cd /tmp/xpra-html5 && python3 setup.py install
 rm -rf /tmp/xpra-html5
 EOF
 
@@ -29,6 +29,10 @@ EOF
 
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY --chmod=0755 healthcheck.sh /usr/local/bin/healthcheck.sh
+COPY --chmod=0644 default-settings.txt /etc/xpra/html5-client/default-settings.txt
+COPY --chmod=0644 xorg.conf /etc/xpra/xorg.conf
+
+RUN sed -i 's|https://fedoraproject.org/start|about:blank|g' /etc/chromium/master_preferences
 
 # ==========================================================================
 #  4. Environment + runtime

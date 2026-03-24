@@ -23,4 +23,6 @@ exec xpra start "${DISPLAY}" \
     --clipboard=yes \
     --speaker=yes \
     --microphone=no \
-    --dpi=96
+    --dpi=96 \
+    --resize-display=1920x1080 \
+    --desktop-scaling=auto
