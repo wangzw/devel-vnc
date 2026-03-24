@@ -61,7 +61,6 @@ RUN brew install \
         1password-cli \
     && brew install steipete/tap/gogcli \
     && brew install steipete/tap/gifgrep \
-    && brew install steipete/tap/songsee \
     && brew install steipete/tap/spogo \
     && brew install steipete/tap/goplaces \
     && brew install steipete/tap/ordercli \
