@@ -18,6 +18,7 @@ RUN dnf install -y epel-release && \
         gcc-c++ \
         make \
         file \
+        kernel-headers \
     && dnf clean all \
     && rm -rf /var/cache/dnf
 
