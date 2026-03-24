@@ -141,12 +141,11 @@ EOF
 RUN <<EOF
 set -e
 ARCH=$(uname -m)
-if [ "$ARCH" = "x86_64" ]; then GOARCH=amd64;
-elif [ "$ARCH" = "aarch64" ]; then GOARCH=arm64; fi
+if [ "$ARCH" = "x86_64" ]; then GOARCH=amd64; OH_ARCH=x86_64;
+elif [ "$ARCH" = "aarch64" ]; then GOARCH=arm64; OH_ARCH=arm64; fi
 
-# openhue-cli
-OH_VER=$(curl -fsSL https://api.github.com/repos/openhue/openhue-cli/releases/latest | jq -r .tag_name | sed 's/^v//')
-curl -fsSL "https://github.com/openhue/openhue-cli/releases/latest/download/openhue-cli_${OH_VER}_linux_${GOARCH}.tar.gz" | tar xz -C /usr/local/bin openhue-cli
+# openhue (asset naming: openhue_Linux_{x86_64|arm64}.tar.gz)
+curl -fsSL "https://github.com/openhue/openhue-cli/releases/latest/download/openhue_Linux_${OH_ARCH}.tar.gz" | tar xz -C /usr/local/bin openhue
 
 # xurl
 XURL_VER=$(curl -fsSL https://api.github.com/repos/xdevplatform/xurl/releases/latest | jq -r .tag_name | sed 's/^v//') || true
