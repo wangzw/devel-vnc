@@ -103,6 +103,8 @@ jobs:
           context: base
           platforms: ${{ matrix.platform.arch }}
           outputs: type=image,name=ghcr.io/wangzw/devel-base,push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=registry,ref=ghcr.io/wangzw/devel-base:cache-${{ matrix.platform.slug }}
+          cache-to: type=registry,ref=ghcr.io/wangzw/devel-base:cache-${{ matrix.platform.slug }},mode=max
 
       - name: Export digest
         run: |
@@ -205,6 +207,8 @@ jobs:
           context: ${{ matrix.image.context }}
           platforms: ${{ matrix.platform.arch }}
           outputs: type=image,name=${{ matrix.image.name }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=registry,ref=${{ matrix.image.name }}:cache-${{ matrix.platform.slug }}
+          cache-to: type=registry,ref=${{ matrix.image.name }}:cache-${{ matrix.platform.slug }},mode=max
 
       - name: Export digest
         run: |
