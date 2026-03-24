@@ -90,6 +90,15 @@ rm -f /etc/yum.repos.d/rpmfusion*.repo
 dnf clean all && rm -rf /var/cache/dnf
 EOF
 
+# ---------- Docker CE ----------
+RUN <<EOF
+set -e
+dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+rm -f /etc/yum.repos.d/docker-ce.repo
+dnf clean all && rm -rf /var/cache/dnf
+EOF
+
 # ==========================================================================
 #  3. Standalone binary tools
 # ==========================================================================
@@ -143,6 +152,7 @@ go install github.com/steipete/spogo/cmd/spogo@latest
 go install github.com/steipete/goplaces/cmd/goplaces@latest
 go install github.com/steipete/ordercli/cmd/ordercli@latest
 go install github.com/steipete/wacli/cmd/wacli@latest
+go install github.com/swaggo/swag/cmd/swag@latest
 rm -rf /opt/go/pkg /opt/go/src
 EOF
 
@@ -215,6 +225,8 @@ set -e
 useradd -m -s /bin/bash devel
 echo 'devel ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/devel
 chmod 0440 /etc/sudoers.d/devel
+chown -R devel:devel /opt/go
+usermod -aG docker devel
 EOF
 
 USER devel
