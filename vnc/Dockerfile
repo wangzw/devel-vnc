@@ -3,24 +3,33 @@ FROM ghcr.io/wangzw/devel-base:latest
 LABEL description="VNC desktop environment - Xvnc + openbox + Chromium + noVNC"
 
 # ---------- VNC + desktop packages ----------
-RUN dnf install -y --allowerasing \
-        tigervnc-server \
-        xorg-x11-utils \
-        openbox \
-        tint2 \
-        Thunar \
-        xterm \
-    && dnf clean all && rm -rf /var/cache/dnf
+RUN <<EOF
+set -e
+dnf install -y --allowerasing \
+    tigervnc-server \
+    xorg-x11-utils \
+    openbox \
+    tint2 \
+    Thunar \
+    xterm
+dnf clean all && rm -rf /var/cache/dnf
+EOF
 
 # ---------- noVNC (web-based VNC access) ----------
-RUN git clone --depth 1 https://github.com/novnc/noVNC.git /opt/noVNC \
-    && git clone --depth 1 https://github.com/novnc/websockify.git /opt/noVNC/utils/websockify \
-    && rm -rf /opt/noVNC/.git /opt/noVNC/utils/websockify/.git
+RUN <<EOF
+set -e
+git clone --depth 1 https://github.com/novnc/noVNC.git /opt/noVNC
+git clone --depth 1 https://github.com/novnc/websockify.git /opt/noVNC/utils/websockify
+rm -rf /opt/noVNC/.git /opt/noVNC/utils/websockify/.git
+EOF
 
 # ---------- Supervisord ----------
-RUN pip3 install --no-cache-dir supervisor \
-    && mkdir -p /etc/supervisor/conf.d /var/log/supervisor \
-    && chown devel:devel /var/log/supervisor
+RUN <<EOF
+set -e
+pip3 install --no-cache-dir supervisor
+mkdir -p /etc/supervisor/conf.d /var/log/supervisor
+chown devel:devel /var/log/supervisor
+EOF
 
 # ---------- Config files ----------
 COPY index.html /opt/noVNC/index.html

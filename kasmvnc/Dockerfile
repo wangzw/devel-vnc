@@ -3,14 +3,20 @@ FROM ghcr.io/wangzw/devel-base:latest
 LABEL description="KasmVNC-based full desktop environment - openbox + Chromium + audio"
 
 # ---------- Desktop packages ----------
-RUN dnf install -y openbox tint2 Thunar xterm openssl mesa-dri-drivers \
-    && dnf clean all && rm -rf /var/cache/dnf
+RUN <<EOF
+set -e
+dnf install -y openbox tint2 Thunar xterm openssl mesa-dri-drivers
+dnf clean all && rm -rf /var/cache/dnf
+EOF
 
 # ---------- KasmVNC (Oracle 9 RPM, binary-compatible with Rocky 9) ----------
-RUN ARCH=$(uname -m) \
-    && dnf install -y \
-        "https://github.com/kasmtech/KasmVNC/releases/download/v1.4.0/kasmvncserver_oracle_9_1.4.0_${ARCH}.rpm" \
-    && dnf clean all && rm -rf /var/cache/dnf
+RUN <<EOF
+set -e
+ARCH=$(uname -m)
+dnf install -y \
+    "https://github.com/kasmtech/KasmVNC/releases/download/v1.4.0/kasmvncserver_oracle_9_1.4.0_${ARCH}.rpm"
+dnf clean all && rm -rf /var/cache/dnf
+EOF
 
 # ---------- KasmVNC cert group ----------
 RUN usermod -a -G kasmvnc-cert devel

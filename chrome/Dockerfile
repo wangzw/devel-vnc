@@ -3,8 +3,11 @@ FROM ghcr.io/wangzw/devel-base:latest
 LABEL description="Xpra-based Chromium browser environment"
 
 # ---------- Xpra ----------
-RUN dnf install -y xpra \
-    && dnf clean all && rm -rf /var/cache/dnf
+RUN <<EOF
+set -e
+dnf install -y xpra
+dnf clean all && rm -rf /var/cache/dnf
+EOF
 
 # ---------- Config files ----------
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
