@@ -29,12 +29,15 @@ EOF
 #  3. Config files
 # ==========================================================================
 
-RUN sed -i 's|https://fedoraproject.org/start|about:blank|g' /etc/chromium/master_preferences
+RUN sed -i 's|https://fedoraproject.org/start|about:blank|g' /etc/chromium/master_preferences \
+ && mkdir -p /etc/chromium/policies/managed \
+ && echo '{"BrowserCloseEnabled": false}' > /etc/chromium/policies/managed/no-close.json
 
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY --chmod=0755 healthcheck.sh /usr/local/bin/healthcheck.sh
 COPY --chmod=0644 default-settings.txt /etc/xpra/html5-client/default-settings.txt
-RUN sed -i 's|</head>|<style>.windowhead{display:none!important}</style></head>|' /usr/share/xpra/www/index.html
+COPY --chmod=0644 xorg.conf /etc/xpra/xorg.conf
+RUN sed -i 's|</head>|<style>.windowhead{display:none!important;height:0!important;min-height:0!important;line-height:0!important;font-size:0!important;padding:0!important;border:0!important}</style></head>|' /usr/share/xpra/www/index.html
 
 # ==========================================================================
 #  4. Environment + runtime

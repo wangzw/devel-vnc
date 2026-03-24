@@ -39,5 +39,5 @@ exec xpra start "${DISPLAY}" \
     --microphone=no \
     --pulseaudio=no \
     --dpi=96 \
-    --resize-display=1920x1080 \
+    --resize-display=yes \
     --headerbar=no
