@@ -8,7 +8,7 @@ LABEL description="Xpra-based Chromium browser environment"
 
 RUN <<EOF
 set -e
-dnf install -y xpra
+dnf install -y --allowerasing xpra
 dnf clean all && rm -rf /var/cache/dnf
 EOF
 

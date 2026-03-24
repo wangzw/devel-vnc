@@ -8,7 +8,7 @@ LABEL description="Xpra-based full desktop environment - openbox + Chromium + au
 
 RUN <<EOF
 set -e
-dnf install -y xpra openbox tint2 Thunar xterm
+dnf install -y --allowerasing xpra openbox tint2 Thunar xterm
 dnf clean all && rm -rf /var/cache/dnf
 EOF
 
