@@ -8,7 +8,8 @@ LABEL description="KasmVNC-based full desktop environment - openbox + Chromium +
 
 RUN <<EOF
 set -e
-dnf install -y openbox tint2 Thunar xterm openssl mesa-dri-drivers
+dnf install -y --allowerasing openbox tint2 Thunar xterm openssl mesa-dri-drivers \
+    pipewire-pulseaudio pipewire-utils wireplumber
 dnf clean all && rm -rf /var/cache/dnf
 EOF
 
