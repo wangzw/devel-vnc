@@ -168,8 +168,8 @@ jobs:
 
   # ---------- Build child images (after base if needed) ----------
   build:
-    needs: [changes, merge-base]
-    if: ${{ always() && needs.changes.outputs.images != '[]' && (needs.merge-base.result == 'success' || needs.merge-base.result == 'skipped') }}
+    needs: [changes, build-base, merge-base]
+    if: ${{ !failure() && !cancelled() && needs.changes.outputs.images != '[]' && (needs.merge-base.result == 'success' || needs.merge-base.result == 'skipped') }}
     runs-on: ${{ matrix.platform.runner }}
     permissions:
       contents: read
