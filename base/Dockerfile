@@ -1,14 +1,9 @@
 FROM rockylinux:9
 
 LABEL maintainer="wangzw"
-LABEL description="Base image — Rocky Linux 9 + Node.js 25 + tools"
+LABEL description="Base image — Rocky Linux 9 + Homebrew + tools"
 
-# ---------- Node.js 25 ----------
-RUN curl -fsSL https://rpm.nodesource.com/setup_25.x | bash - && \
-    dnf install -y nodejs && \
-    dnf clean all
-
-# ---------- EPEL + CRB + system utilities + build tools ----------
+# ---------- Minimal system packages (required before Homebrew) ----------
 RUN dnf install -y epel-release && \
     dnf config-manager --set-enabled crb && \
     dnf install -y --allowerasing \
@@ -17,22 +12,14 @@ RUN dnf install -y epel-release && \
         which \
         findutils \
         curl \
-        wget \
         git \
         net-tools \
         gcc \
         gcc-c++ \
         make \
-        cmake \
-        tmux \
-        lsof \
-        socat \
-        unzip \
-        golang \
-        poppler-utils \
-        tesseract \
         file \
-    && dnf clean all
+    && dnf clean all \
+    && rm -rf /var/cache/dnf
 
 # ---------- Homebrew ----------
 RUN useradd -m -s /bin/bash linuxbrew && \
@@ -46,10 +33,20 @@ ENV HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
 ENV HOMEBREW_CELLAR="/home/linuxbrew/.linuxbrew/Cellar"
 ENV HOMEBREW_REPOSITORY="/home/linuxbrew/.linuxbrew/Homebrew"
 
-# ---------- Skill dependencies (Homebrew) ----------
+# ---------- Homebrew packages (dev tools + skill dependencies) ----------
 ENV HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1
 USER linuxbrew
 RUN brew install \
+        node \
+        go \
+        cmake \
+        tmux \
+        wget \
+        socat \
+        unzip \
+        lsof \
+        poppler \
+        tesseract \
         gh \
         glab \
         jq \
@@ -71,20 +68,28 @@ RUN brew install \
     && brew install openhue/cli/openhue-cli \
     && brew install xdevplatform/tap/xurl \
     && brew cleanup --prune=all
+
+# ---------- Skill dependencies (npm global — as linuxbrew for Homebrew's node) ----------
+RUN npm install -g \
+        @playwright/cli@latest \
+        mcporter \
+        @steipete/oracle \
+        @steipete/summarize \
+        clawhub \
+    && npm cache clean --force
 USER root
 
 # ---------- Skill dependencies (Go) ----------
 ENV GOPATH=/opt/go
 ENV PATH="${GOPATH}/bin:${PATH}"
-RUN C_INCLUDE_PATH=/usr/include CGO_CFLAGS="-I/usr/include" \
-    go install github.com/steipete/blucli/cmd/blu@latest && \
-    C_INCLUDE_PATH=/usr/include CGO_CFLAGS="-I/usr/include" \
+RUN mkdir -p /opt/go && chown linuxbrew:linuxbrew /opt/go
+USER linuxbrew
+RUN go install github.com/steipete/blucli/cmd/blu@latest && \
     go install github.com/steipete/sonoscli/cmd/sonos@latest && \
-    C_INCLUDE_PATH=/usr/include CGO_CFLAGS="-I/usr/include" \
     go install github.com/steipete/eightctl/cmd/eightctl@latest && \
-    C_INCLUDE_PATH=/usr/include CGO_CFLAGS="-I/usr/include" \
     go install github.com/Hyaxia/blogwatcher/cmd/blogwatcher@latest && \
     rm -rf /opt/go/pkg /opt/go/src
+USER root
 
 # ---------- Skill dependencies (Python) ----------
 ENV PATH="/usr/local/bin:/root/.local/bin:${PATH}"
@@ -92,16 +97,12 @@ RUN uv tool install nano-pdf && \
     uv tool install obsidian-cli && \
     ln -sf /root/.local/bin/obsidian /root/.local/bin/obsidian-cli
 
-# ---------- Skill dependencies (Node) ----------
-RUN npm install -g mcporter @steipete/oracle @steipete/summarize clawhub && \
-    rm -rf /root/.npm /tmp/*
-
 # ---------- Common: devel user + sudo ----------
 RUN useradd -m -s /bin/bash devel \
     && echo 'devel ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/devel \
     && chmod 0440 /etc/sudoers.d/devel
 
-# ---------- Common: fonts + GUI dependencies ----------
+# ---------- Common: fonts + GUI dependencies (dnf only — not in Homebrew) ----------
 RUN dnf install -y --allowerasing \
         xorg-x11-fonts-Type1 \
         xorg-x11-fonts-misc \
@@ -128,9 +129,6 @@ RUN mv /usr/bin/chromium-browser /usr/bin/chromium-browser.real \
 RUN mkdir -p /etc/chromium/policies/managed \
     && printf '{"HomepageLocation":"about:blank","HomepageIsNewTabPage":false,"RestoreOnStartup":4,"StartupUrls":["about:blank"]}\n' \
         > /etc/chromium/policies/managed/default.json
-
-# ---------- Common: playwright-cli ----------
-RUN npm install -g @playwright/cli@latest
 
 # ---------- Common: user-space setup ----------
 USER devel
