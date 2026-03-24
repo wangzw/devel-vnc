@@ -155,8 +155,9 @@ EOF
 # ---------- Common: devel user + sudo ----------
 RUN <<EOF
 set -e
+dnf install -y sudo
+dnf clean all && rm -rf /var/cache/dnf
 useradd -m -s /bin/bash devel
-mkdir -p /etc/sudoers.d
 echo 'devel ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/devel
 chmod 0440 /etc/sudoers.d/devel
 EOF
@@ -173,7 +174,6 @@ dnf install -y --allowerasing \
     langpacks-zh_CN \
     dbus-x11 \
     pipewire-pulseaudio \
-    sudo \
     tini \
     chromium
 fc-cache -f
