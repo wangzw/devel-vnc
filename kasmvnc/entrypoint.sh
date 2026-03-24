@@ -37,11 +37,6 @@ desktop:
   pixel_depth: 24
 encoding:
   max_frame_rate: 60
-  rect_encoding_mode:
-    min_quality: 7
-    max_quality: 10
-    consider_lossless_quality: 10
-    rectangle_compress_threads: 0
 EOF
 
 # ---------- xstartup ----------

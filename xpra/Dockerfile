@@ -19,7 +19,7 @@ EOF
 RUN <<EOF
 set -e
 git clone --depth 1 https://github.com/Xpra-org/xpra-html5.git /tmp/xpra-html5
-cd /tmp/xpra-html5 && python3 setup.py install /usr/share/xpra/www
+cd /tmp/xpra-html5 && python3 setup.py install /
 rm -rf /tmp/xpra-html5
 EOF
 

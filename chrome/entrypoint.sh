@@ -6,7 +6,7 @@ DEV_HOME="/home/devel"
 echo "[xpra-chrome] Configuring Xpra authentication..."
 
 mkdir -p "${DEV_HOME}/.xpra"
-echo "${XPRA_PW}" > "${DEV_HOME}/.xpra/password"
+printf '%s' "${XPRA_PW}" > "${DEV_HOME}/.xpra/password"
 chmod 600 "${DEV_HOME}/.xpra/password"
 
 echo "[xpra-chrome] Starting Xpra with Chromium..."

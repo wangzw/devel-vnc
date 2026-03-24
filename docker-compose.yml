@@ -1,0 +1,32 @@
+services:
+  vnc:
+    image: ghcr.io/wangzw/devel-vnc:latest
+    ports:
+      - "5901:5901"
+      - "6080:6080"
+    environment:
+      - VNC_PW=devel123
+
+  chrome:
+    image: ghcr.io/wangzw/devel-chrome:latest
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+    environment:
+      - XPRA_PW=devel123
+      - CHROME_URL=about:blank
+
+  xpra:
+    image: ghcr.io/wangzw/devel-xpra:latest
+    ports:
+      - "10002:10000"
+      - "10003:10001"
+    environment:
+      - XPRA_PW=devel123
+
+  kasmvnc:
+    image: ghcr.io/wangzw/devel-kasmvnc:latest
+    ports:
+      - "6901:6901"
+    environment:
+      - KASM_PW=devel123

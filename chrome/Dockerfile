@@ -13,14 +13,25 @@ dnf clean all && rm -rf /var/cache/dnf
 EOF
 
 # ==========================================================================
-#  2. Config files
+#  2. Xpra HTML5 client
+# ==========================================================================
+
+RUN <<EOF
+set -e
+git clone --depth 1 https://github.com/Xpra-org/xpra-html5.git /tmp/xpra-html5
+cd /tmp/xpra-html5 && python3 setup.py install /
+rm -rf /tmp/xpra-html5
+EOF
+
+# ==========================================================================
+#  3. Config files
 # ==========================================================================
 
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY --chmod=0755 healthcheck.sh /usr/local/bin/healthcheck.sh
 
 # ==========================================================================
-#  3. Environment + runtime
+#  4. Environment + runtime
 # ==========================================================================
 
 ENV DISPLAY=:100 \
