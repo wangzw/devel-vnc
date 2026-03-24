@@ -76,7 +76,7 @@ dnf clean all && rm -rf /var/cache/dnf
 EOF
 
 # ---------- uv (standalone installer) ----------
-RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local sh
+RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
 
 # ---------- Tools via direct binary download ----------
 RUN <<EOF
