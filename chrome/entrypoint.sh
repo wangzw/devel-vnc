@@ -29,7 +29,8 @@ exec xpra start "${DISPLAY}" \
     --html=on \
     --tcp-auth=file:filename="${DEV_HOME}/.xpra/password" \
     --ws-auth=file:filename="${DEV_HOME}/.xpra/password" \
-    --start="chromium-browser --start-maximized ${CHROME_URL}" \
+    --start-child="chromium-browser --start-maximized ${CHROME_URL}" \
+    --exit-with-children \
     --no-daemon \
     --no-notifications \
     --no-mdns \
@@ -38,4 +39,5 @@ exec xpra start "${DISPLAY}" \
     --microphone=no \
     --pulseaudio=no \
     --dpi=96 \
-    --resize-display=1920x1080
+    --resize-display=1920x1080 \
+    --headerbar=no

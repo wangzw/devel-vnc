@@ -34,6 +34,7 @@ RUN sed -i 's|https://fedoraproject.org/start|about:blank|g' /etc/chromium/maste
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY --chmod=0755 healthcheck.sh /usr/local/bin/healthcheck.sh
 COPY --chmod=0644 default-settings.txt /etc/xpra/html5-client/default-settings.txt
+RUN sed -i 's|</head>|<style>.windowhead{display:none!important}</style></head>|' /usr/share/xpra/www/index.html
 
 # ==========================================================================
 #  4. Environment + runtime
