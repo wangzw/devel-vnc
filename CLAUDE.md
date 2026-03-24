@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Docker images for remote graphical access, all based on a shared base image (`base/`). Five subdirectories:
 
-- **`base/`** — Shared base image (`ghcr.io/wangzw/devel-base`) on Rocky Linux 9 with Node.js 25, Go, Homebrew, Chromium, playwright-cli, Claude Code
+- **`base/`** — Shared base image (`ghcr.io/wangzw/devel-base`) on Rocky Linux 9 with Node.js 25, Go, Chromium, playwright-cli, Claude Code
 - **`vnc/`** — TigerVNC + noVNC + openbox desktop
 - **`chrome/`** — Xpra single Chromium window (no desktop)
 - **`xpra/`** — Xpra full desktop (openbox + tint2 + Thunar)
@@ -56,7 +56,7 @@ docker run -d -p 6901:6901 devel-kasmvnc
 ## Architecture
 
 ### base/
-Rocky Linux 9 + Node.js 25 + EPEL/CRB + Homebrew + Go tools + Python tools + Chromium + playwright-cli + Claude Code + CJK fonts + tini + devel user.
+Rocky Linux 9 + Node.js 25 + EPEL/CRB + Go tools + Python tools + Chromium + playwright-cli + Claude Code + CJK fonts + tini + devel user.
 
 ### vnc/
 Entrypoint configures VNC credentials and openbox, then launches **supervisord** managing: Xvnc, openbox, noVNC proxy, log aggregator.
