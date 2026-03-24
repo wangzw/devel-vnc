@@ -149,7 +149,7 @@ OH_VER=$(curl -fsSL https://api.github.com/repos/openhue/openhue-cli/releases/la
 curl -fsSL "https://github.com/openhue/openhue-cli/releases/download/${OH_VER}/openhue_Linux_${OH_ARCH}.tar.gz" | tar xz -C /usr/local/bin openhue
 
 # xurl (asset naming: xurl_Linux_{x86_64|arm64}.tar.gz)
-curl -fsSL "https://github.com/xdevplatform/xurl/releases/latest/download/xurl_Linux_${OH_ARCH}.tar.gz" | tar xz -C /usr/local/bin xurl || true
+curl -fsSL "https://github.com/xdevplatform/xurl/releases/latest/download/xurl_Linux_${OH_ARCH}.tar.gz" | tar xz -C /usr/local/bin xurl
 EOF
 
 # ---------- Common: devel user + sudo ----------
