@@ -48,6 +48,8 @@ dnf install -y --allowerasing \
     python3-pip \
     poppler-utils \
     tesseract
+dnf update -y ca-certificates
+update-ca-trust
 rm -f /etc/yum.repos.d/nodesource*.repo
 dnf clean all && rm -rf /var/cache/dnf
 EOF
