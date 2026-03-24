@@ -9,7 +9,7 @@ LABEL description="Xpra-based Chromium browser environment"
 RUN <<EOF
 set -e
 dnf install -y --allowerasing \
-    xpra \
+    xpra xdotool \
     pipewire-pulseaudio pipewire-utils wireplumber
 dnf clean all && rm -rf /var/cache/dnf
 EOF
@@ -33,6 +33,8 @@ RUN sed -i 's|https://fedoraproject.org/start|about:blank|g' /etc/chromium/maste
  && mkdir -p /etc/chromium/policies/managed \
  && echo '{"BrowserCloseEnabled": false}' > /etc/chromium/policies/managed/no-close.json
 
+COPY keep-last-tab/ /opt/chrome-extensions/keep-last-tab/
+COPY --chmod=0755 chrome-maximized.sh /usr/local/bin/chrome-maximized.sh
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY --chmod=0755 healthcheck.sh /usr/local/bin/healthcheck.sh
 COPY --chmod=0644 default-settings.txt /etc/xpra/html5-client/default-settings.txt

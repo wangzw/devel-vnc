@@ -29,8 +29,7 @@ exec xpra start "${DISPLAY}" \
     --html=on \
     --tcp-auth=file:filename="${DEV_HOME}/.xpra/password" \
     --ws-auth=file:filename="${DEV_HOME}/.xpra/password" \
-    --start-child="chromium-browser --start-maximized ${CHROME_URL}" \
-    --exit-with-children \
+    --start-child="/usr/local/bin/chrome-maximized.sh" \
     --no-daemon \
     --no-notifications \
     --no-mdns \
