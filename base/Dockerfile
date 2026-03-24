@@ -48,6 +48,7 @@ dnf install -y --allowerasing \
     python3-pip \
     poppler-utils \
     tesseract
+rm -f /etc/yum.repos.d/nodesource*.repo
 dnf clean all && rm -rf /var/cache/dnf
 EOF
 
@@ -61,6 +62,7 @@ set -e
 dnf install -y 'dnf-command(config-manager)'
 dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
 dnf install -y gh
+rm -f /etc/yum.repos.d/gh-cli.repo
 dnf clean all && rm -rf /var/cache/dnf
 EOF
 
@@ -71,6 +73,7 @@ rpm --import https://downloads.1password.com/linux/keys/1password.asc
 printf '[1password]\nname=1Password Stable Channel\nbaseurl=https://downloads.1password.com/linux/rpm/stable/$basearch\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://downloads.1password.com/linux/keys/1password.asc\n' \
     > /etc/yum.repos.d/1password.repo
 dnf install -y 1password-cli
+rm -f /etc/yum.repos.d/1password.repo
 dnf clean all && rm -rf /var/cache/dnf
 EOF
 
@@ -81,6 +84,7 @@ dnf install -y \
     https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-9.noarch.rpm \
     https://mirrors.rpmfusion.org/nonfree/el/rpmfusion-nonfree-release-9.noarch.rpm
 dnf install -y ffmpeg
+rm -f /etc/yum.repos.d/rpmfusion*.repo
 dnf clean all && rm -rf /var/cache/dnf
 EOF
 
@@ -197,7 +201,7 @@ EOF
 RUN <<EOF
 set -e
 mkdir -p /etc/chromium/policies/managed
-printf '{"HomepageLocation":"about:blank","HomepageIsNewTabPage":false,"RestoreOnStartup":4,"StartupUrls":["about:blank"]}\n' \
+printf '{"HomepageIsNewTabPage":true,"RestoreOnStartup":1}\n' \
     > /etc/chromium/policies/managed/default.json
 EOF
 
