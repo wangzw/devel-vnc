@@ -42,7 +42,6 @@ dnf install -y --allowerasing \
     ripgrep \
     file \
     kernel-headers \
-    golang \
     nodejs \
     python3 \
     python3-pip \
@@ -53,6 +52,16 @@ update-ca-trust
 rm -f /etc/yum.repos.d/nodesource*.repo
 dnf clean all && rm -rf /var/cache/dnf
 EOF
+
+# ---------- Go 1.26.1 ----------
+RUN <<EOF
+set -e
+ARCH=$(uname -m)
+if [ "$ARCH" = "x86_64" ]; then GOARCH=amd64;
+elif [ "$ARCH" = "aarch64" ]; then GOARCH=arm64; fi
+curl -fsSL "https://go.dev/dl/go1.26.1.linux-${GOARCH}.tar.gz" | tar xz -C /usr/local
+EOF
+ENV PATH="/usr/local/go/bin:${PATH}"
 
 # ==========================================================================
 #  2. Third-party repositories & CLIs
