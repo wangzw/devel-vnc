@@ -43,14 +43,19 @@ dnf install -y --allowerasing \
     file \
     kernel-headers \
     nodejs \
-    python3 \
-    python3-pip \
+    python3.12 \
+    python3.12-pip \
     poppler-utils \
     tesseract
 dnf update -y ca-certificates
 update-ca-trust
 rm -f /etc/yum.repos.d/nodesource*.repo
 dnf clean all && rm -rf /var/cache/dnf
+alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
+alternatives --set python3 /usr/bin/python3.12
+ln -sf /usr/bin/pip3.12 /usr/bin/pip3
+ln -sf /usr/bin/python3 /usr/bin/python
+ln -sf /usr/bin/pip3 /usr/bin/pip
 EOF
 
 # ---------- Go 1.26.1 ----------
