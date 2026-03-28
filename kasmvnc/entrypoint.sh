@@ -50,6 +50,21 @@ exec openbox-session
 XSTARTUP
 chmod +x "${DEV_HOME}/.vnc/xstartup"
 
+# ---------- Openbox menu (avoid broken pipe-menu) ----------
+mkdir -p "${DEV_HOME}/.config/openbox"
+cat > "${DEV_HOME}/.config/openbox/menu.xml" << 'MENU'
+<?xml version="1.0" encoding="UTF-8"?>
+<openbox_menu xmlns="http://openbox.org/3.4/menu">
+  <menu id="root-menu" label="Desktop">
+    <item label="Terminal"><action name="Execute"><command>xterm</command></action></item>
+    <item label="File Manager"><action name="Execute"><command>thunar</command></action></item>
+    <item label="Chromium"><action name="Execute"><command>chromium-browser --no-sandbox</command></action></item>
+    <separator />
+    <item label="Reconfigure"><action name="Reconfigure" /></item>
+  </menu>
+</openbox_menu>
+MENU
+
 echo "[kasmvnc] Starting KasmVNC server..."
 exec vncserver "${DISPLAY}" \
     -depth "${VNC_COL_DEPTH}" \
