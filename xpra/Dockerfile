@@ -13,6 +13,8 @@ dnf install -y --allowerasing \
     openbox tint2 Thunar xterm \
     pipewire-pulseaudio pipewire-utils wireplumber
 dnf clean all && rm -rf /var/cache/dnf
+# xpra is built against system python3.9; fix shebang since base image defaults to 3.12
+sed -i '1s|#!/usr/bin/python3|#!/usr/bin/python3.9|' /usr/bin/xpra
 EOF
 
 # ==========================================================================
