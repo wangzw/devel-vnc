@@ -226,7 +226,7 @@ EOF
 RUN <<EOF
 set -e
 mkdir -p /etc/chromium/policies/managed
-printf '{"HomepageIsNewTabPage":true,"RestoreOnStartup":1}\n' \
+printf '{"HomepageIsNewTabPage":true,"RestoreOnStartup":1,"ExtensionInstallForcelist":["medapdbncneneejhbgcjceippjlfkmkg;https://clients2.google.com/service/update2/crx"]}\n' \
     > /etc/chromium/policies/managed/default.json
 EOF
 
