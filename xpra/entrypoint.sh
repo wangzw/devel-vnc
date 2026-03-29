@@ -41,6 +41,9 @@ wireplumber &
 sleep 1
 export PULSE_SERVER="unix:${XDG_RUNTIME_DIR}/pulse/native"
 
+# ---------- Supercronic ----------
+supercronic /etc/supercronic-crontab &
+
 # ---------- Start Xpra desktop ----------
 echo "[xpra-desktop] Starting Xpra desktop..."
 exec xpra start-desktop "${DISPLAY}" \

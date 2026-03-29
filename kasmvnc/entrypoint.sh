@@ -65,6 +65,9 @@ cat > "${DEV_HOME}/.config/openbox/menu.xml" << 'MENU'
 </openbox_menu>
 MENU
 
+# ---------- Supercronic ----------
+supercronic /etc/supercronic-crontab &
+
 echo "[kasmvnc] Starting KasmVNC server..."
 exec vncserver "${DISPLAY}" \
     -depth "${VNC_COL_DEPTH}" \

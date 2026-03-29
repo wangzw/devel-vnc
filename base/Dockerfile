@@ -120,6 +120,18 @@ EOF
 # ---------- uv (Python package manager) ----------
 RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
 
+# ---------- Supercronic (cron for containers) ----------
+RUN <<EOF
+set -e
+ARCH=$(uname -m)
+if [ "$ARCH" = "x86_64" ]; then SC_ARCH=amd64;
+elif [ "$ARCH" = "aarch64" ]; then SC_ARCH=arm64; fi
+SC_VER=$(curl -fsSL https://api.github.com/repos/aptible/supercronic/releases/latest | jq -r .tag_name)
+curl -fsSL "https://github.com/aptible/supercronic/releases/download/${SC_VER}/supercronic-linux-${SC_ARCH}" -o /usr/local/bin/supercronic
+chmod +x /usr/local/bin/supercronic
+touch /etc/supercronic-crontab
+EOF
+
 # ---------- Direct binary downloads ----------
 RUN <<EOF
 set -e
