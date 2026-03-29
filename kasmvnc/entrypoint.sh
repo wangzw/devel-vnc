@@ -65,16 +65,6 @@ cat > "${DEV_HOME}/.config/openbox/menu.xml" << 'MENU'
 </openbox_menu>
 MENU
 
-# ---------- Supercronic ----------
-supercronic /etc/supercronic-crontab &
-
-echo "[kasmvnc] Starting KasmVNC server..."
-exec vncserver "${DISPLAY}" \
-    -depth "${VNC_COL_DEPTH}" \
-    -geometry "${VNC_RESOLUTION}" \
-    -websocketPort "${KASM_PORT}" \
-    -interface 0.0.0.0 \
-    -BlacklistThreshold=0 \
-    -FreeKeyMappings \
-    -select-de manual \
-    -fg
+# ---------- Start services via supervisord ----------
+echo "[kasmvnc] Starting services via supervisord..."
+exec sudo -E /usr/local/bin/supervisord -c /etc/supervisor/supervisord.conf

@@ -41,24 +41,6 @@ wireplumber &
 sleep 1
 export PULSE_SERVER="unix:${XDG_RUNTIME_DIR}/pulse/native"
 
-# ---------- Supercronic ----------
-supercronic /etc/supercronic-crontab &
-
-# ---------- Start Xpra desktop ----------
-echo "[xpra-desktop] Starting Xpra desktop..."
-exec xpra start-desktop "${DISPLAY}" \
-    --bind-tcp=0.0.0.0:"${XPRA_TCP_PORT}" \
-    --bind-ws=0.0.0.0:"${XPRA_PORT}" \
-    --html=on \
-    --tcp-auth=file:filename="${DEV_HOME}/.xpra/password" \
-    --ws-auth=file:filename="${DEV_HOME}/.xpra/password" \
-    --start=openbox-session \
-    --no-daemon \
-    --no-notifications \
-    --no-mdns \
-    --clipboard=yes \
-    --speaker=yes \
-    --microphone=no \
-    --pulseaudio=no \
-    --dpi=96 \
-    --resize-display=yes
+# ---------- Start services via supervisord ----------
+echo "[xpra-desktop] Starting services via supervisord..."
+exec sudo -E /usr/local/bin/supervisord -c /etc/supervisor/supervisord.conf

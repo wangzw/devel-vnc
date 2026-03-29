@@ -32,6 +32,7 @@ RUN usermod -a -G kasmvnc-cert devel
 
 RUN sed -i 's|https://fedoraproject.org/start|about:blank|g' /etc/chromium/master_preferences
 
+COPY supervisord.conf /etc/supervisor/supervisord.conf
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY --chmod=0755 healthcheck.sh /usr/local/bin/healthcheck.sh
 

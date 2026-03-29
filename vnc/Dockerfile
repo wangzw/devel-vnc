@@ -19,7 +19,7 @@ dnf clean all && rm -rf /var/cache/dnf
 EOF
 
 # ==========================================================================
-#  2. noVNC + supervisord
+#  2. noVNC
 # ==========================================================================
 
 RUN <<EOF
@@ -27,13 +27,6 @@ set -e
 git clone --depth 1 https://github.com/novnc/noVNC.git /opt/noVNC
 git clone --depth 1 https://github.com/novnc/websockify.git /opt/noVNC/utils/websockify
 rm -rf /opt/noVNC/.git /opt/noVNC/utils/websockify/.git
-EOF
-
-RUN <<EOF
-set -e
-pip3 install --no-cache-dir supervisor
-mkdir -p /etc/supervisor/conf.d /var/log/supervisor
-chown devel:devel /var/log/supervisor
 EOF
 
 # ==========================================================================

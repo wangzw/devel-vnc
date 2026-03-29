@@ -120,6 +120,13 @@ EOF
 # ---------- uv (Python package manager) ----------
 RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
 
+# ---------- Supervisord ----------
+RUN <<EOF
+set -e
+pip3 install --no-cache-dir supervisor
+mkdir -p /etc/supervisor/conf.d /var/log/supervisor
+EOF
+
 # ---------- Supercronic (cron for containers) ----------
 RUN <<EOF
 set -e
@@ -129,8 +136,10 @@ elif [ "$ARCH" = "aarch64" ]; then SC_ARCH=arm64; fi
 SC_VER=$(curl -fsSL https://api.github.com/repos/aptible/supercronic/releases/latest | jq -r .tag_name)
 curl -fsSL "https://github.com/aptible/supercronic/releases/download/${SC_VER}/supercronic-linux-${SC_ARCH}" -o /usr/local/bin/supercronic
 chmod +x /usr/local/bin/supercronic
+mkdir -p /etc/supercronic.d
 touch /etc/supercronic-crontab
 EOF
+COPY --chmod=0755 supercronic-launcher.sh /usr/local/bin/supercronic-launcher
 
 # ---------- Direct binary downloads ----------
 RUN <<EOF
@@ -252,6 +261,8 @@ useradd -m -s /bin/bash devel
 echo 'devel ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/devel
 chmod 0440 /etc/sudoers.d/devel
 chown -R devel:devel /opt/go
+chown devel:devel /var/log/supervisor /etc/supervisor/conf.d
+chown devel:devel /etc/supercronic-crontab /etc/supercronic.d
 usermod -aG docker devel
 EOF
 

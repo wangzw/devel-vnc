@@ -34,6 +34,7 @@ EOF
 
 RUN sed -i 's|https://fedoraproject.org/start|about:blank|g' /etc/chromium/master_preferences
 
+COPY supervisord.conf /etc/supervisor/supervisord.conf
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY --chmod=0755 healthcheck.sh /usr/local/bin/healthcheck.sh
 COPY --chmod=0644 default-settings.txt /etc/xpra/html5-client/default-settings.txt
