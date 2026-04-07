@@ -21,32 +21,46 @@ EOF
 RUN <<EOF
 set -e
 dnf install -y --allowerasing \
-    procps-ng \
-    hostname \
-    which \
-    findutils \
+    bash-completion \
+    bind-utils \
+    cmake \
     curl \
-    wget \
-    git \
-    net-tools \
+    diffutils \
+    file \
+    findutils \
     gcc \
     gcc-c++ \
-    make \
-    cmake \
-    tmux \
-    lsof \
-    socat \
-    unzip \
-    sudo \
+    git \
+    hostname \
+    htop \
+    iputils \
+    iproute \
     jq \
-    ripgrep \
-    file \
     kernel-headers \
+    less \
+    lsof \
+    make \
+    net-tools \
     nodejs \
+    openssh-clients \
+    patch \
+    poppler-utils \
+    procps-ng \
     python3.12 \
     python3.12-pip \
-    poppler-utils \
-    tesseract
+    ripgrep \
+    rsync \
+    socat \
+    strace \
+    sudo \
+    tesseract \
+    tmux \
+    tree \
+    unzip \
+    vim-enhanced \
+    wget \
+    which \
+    zip
 dnf update -y ca-certificates
 update-ca-trust
 rm -f /etc/yum.repos.d/nodesource*.repo
