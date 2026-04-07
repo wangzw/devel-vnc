@@ -170,8 +170,10 @@ dnf install -y /tmp/glab.rpm && rm -f /tmp/glab.rpm
 # himalaya
 curl -fsSL "https://github.com/pimalaya/himalaya/releases/latest/download/himalaya.${UARCH}-linux.tgz" | tar xz -C /usr/local/bin
 
-# spotify_player
-curl -fsSL "https://github.com/aome510/spotify-player/releases/latest/download/spotify_player-${UARCH}-unknown-linux-gnu.tar.gz" | tar xz -C /usr/local/bin
+# spotify_player (x86_64 only — no Linux arm64 release available)
+if [ "$ARCH" = "x86_64" ]; then
+  curl -fsSL "https://github.com/aome510/spotify-player/releases/latest/download/spotify_player-${UARCH}-unknown-linux-gnu.tar.gz" | tar xz -C /usr/local/bin
+fi
 
 # openhue (asset naming: openhue_Linux_{x86_64|arm64}.tar.gz)
 if [ "$ARCH" = "x86_64" ]; then OH_ARCH=x86_64; else OH_ARCH=arm64; fi
