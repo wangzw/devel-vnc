@@ -212,6 +212,7 @@ RUN <<EOF
 set -e
 npm install -g \
     @playwright/cli@latest \
+    @tobilu/qmd \
     mcporter \
     @steipete/oracle \
     @steipete/summarize \
